@@ -1,27 +1,27 @@
-# aws-fhir-authz-rbac
+# fhir-works-on-aws-authz-rbac
 
 ## Purpose
 
-Please visit [aws-fhir-solution](https://github.com/awslabs/aws-fhir-solution) for overall vision of the project and for more context.
+Please visit [fhir-works-on-aws-deployment](https://github.com/awslabs/fhir-works-on-aws-deployment) for overall vision of the project and for more context.
 
 This package is an implementation of the authorization interface. It uses the user group claims found in the incoming JWT access token to determine if the user has permissions to do the requested action. This also means that it assumes the user correctly obtained an access token from cognito by using scopes of either:
 
 - `openid profile` Must have both
 - `aws.cognito.signin.user.admin`
 
-To use and deploy this component (with the other default components) please follow the overall [README](https://github.com/awslabs/aws-fhir-solution)
+To use and deploy this component (with the other default components) please follow the overall [README](https://github.com/awslabs/fhir-works-on-aws-deployment)
 
 ## Usage
 
-For usage please add this package to your `package.json` file and install as a dependency. For usage examples please see the [deployment component](https://github.com/awslabs/aws-fhir-solution)
+For usage please add this package to your `package.json` file and install as a dependency. For usage examples please see the [deployment component](https://github.com/awslabs/fhir-works-on-aws-deployment)
 
 ## Dependency tree
 
 This package is dependent on:
 
-- [interface component](https://github.com/awslabs/aws-fhir-interface)
+- [interface component](https://github.com/awslabs/fhir-works-on-aws-interface)
   - This package defines the interface we are trying to use
-- [deployment component](https://github.com/awslabs/aws-fhir-solution)
+- [deployment component](https://github.com/awslabs/fhir-works-on-aws-deployment)
   - This package deploys this and all the default components
 
 ## Known issues

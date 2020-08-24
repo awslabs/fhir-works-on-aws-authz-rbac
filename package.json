@@ -1,7 +1,7 @@
 {
-  "name": "@awslabs/aws-fhir-authz-rbac",
+  "name": "@awslabs/fhir-works-on-aws-authz-rbac",
   "version": "0.9.1",
-  "description": "FHIR Solution hosted on AWS Lambda",
+  "description": "FHIR Works on AWS role base access control",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "author": "amzn",
@@ -55,5 +55,5 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
-  "repository": "git://github.com/awslabs/aws-fhir-authz-rbac.git"
+  "repository": "git://github.com/awslabs/fhir-works-on-aws-authz-rbac.git"
 }
