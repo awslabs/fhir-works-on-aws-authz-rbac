@@ -4,7 +4,7 @@
 
 Please visit [fhir-works-on-aws-deployment](https://github.com/awslabs/fhir-works-on-aws-deployment) for overall vision of the project and for more context.
 
-This package is an implementation of the authorization interface from the [FHIR Works interface](https://github.com/awslabs/fhir-works-on-aws-interface). It uses role based access control (RBAC) to limit access to certain resource types and what operations one can do on those resource types. Cognito User groups are used to determine which roles the user has and can be found in the claims within the incoming JWT access token. This means that the user must correctly obtained an access token from cognito by using scopes of either:
+This package is an implementation of the authorization interface from the [FHIR Works interface](https://github.com/awslabs/fhir-works-on-aws-interface). It uses role based access control (RBAC) to limit access to certain resource types and what operations one can do on those resource types. Cognito User Groups are used to determine which roles the user has. The User Group information is passed along in the OAuth access token when a user makes a request to the FHIR API. This means that the user must correctly obtained an access token from Cognito by using scopes of either:
 
 - `openid profile` Must have both
 - `aws.cognito.signin.user.admin`
