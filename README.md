@@ -4,16 +4,40 @@
 
 Please visit [fhir-works-on-aws-deployment](https://github.com/awslabs/fhir-works-on-aws-deployment) for overall vision of the project and for more context.
 
-This package is an implementation of the authorization interface. It uses the user group claims found in the incoming JWT access token to determine if the user has permissions to do the requested action. This also means that it assumes the user correctly obtained an access token from cognito by using scopes of either:
+This package is an implementation of the authorization interface from the [FHIR Works interface](https://github.com/awslabs/fhir-works-on-aws-interface). It uses role based access control (RBAC) to limit access to certain resource types and what operations one can do on those resource types. Cognito User groups are used to determine which roles the user has and can be found in the claims within the incoming JWT access token. This means that the user must correctly obtained an access token from cognito by using scopes of either:
 
 - `openid profile` Must have both
 - `aws.cognito.signin.user.admin`
 
-To use and deploy this component (with the other default components) please follow the overall [README](https://github.com/awslabs/fhir-works-on-aws-deployment)
+To use and deploy this component (with the other 'out of the box' components) please follow the overall [README](https://github.com/awslabs/fhir-works-on-aws-deployment)
+
+## Infrastructure
+
+This package assumes certain infrastructure:
+
+- Cognito - is our idP
+  - Users - created and managed inside of Cognito
+  - User Groups - Used to determine which role the users have
+  - OAuth - Used to provide an access token to the user. To understand the flow more see this [link](https://aws.amazon.com/blogs/mobile/understanding-amazon-cognito-user-pool-oauth-2-0-grants/)
 
 ## Usage
 
-For usage please add this package to your `package.json` file and install as a dependency. For usage examples please see the [deployment component](https://github.com/awslabs/fhir-works-on-aws-deployment)
+For usage please add this package to your `package.json` file and install as a dependency. For usage examples please see the deployment component's [package.json](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/package.json)
+
+### Authorization rules
+
+The rules are defined very simply and are in this format:
+
+```json
+{
+  <name-of-role>: {
+    operations: [<array-of-operations-that-can-be-performed>],
+    resources: [<array-of-resource-types>]
+  }
+}
+```
+
+For a working example please see [RBACRules.ts](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/src/RBACRules.ts) in the deployment package
 
 ## Dependency tree
 
