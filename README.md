@@ -28,7 +28,7 @@ For usage please add this package to your `package.json` file and install as a d
 
 The rules are defined very simply and are in this format:
 
-```json
+```txt
 {
   <name-of-role>: {
     operations: [<array-of-operations-that-can-be-performed>],
