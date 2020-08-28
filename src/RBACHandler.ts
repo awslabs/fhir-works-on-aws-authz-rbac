@@ -10,7 +10,7 @@ import {
     TypeOperation,
     SystemOperation,
     BatchReadWriteRequest,
-} from '@awslabs/fhir-works-on-aws-interface';
+} from 'fhir-works-on-aws-interface';
 import { Rule, RBACConfig } from './RBACConfig';
 
 // eslint-disable-next-line import/prefer-default-export

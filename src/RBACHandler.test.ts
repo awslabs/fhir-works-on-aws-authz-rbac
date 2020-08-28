@@ -2,7 +2,7 @@
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  */
-import { R4Resource } from '@awslabs/fhir-works-on-aws-interface';
+import { R4Resource } from 'fhir-works-on-aws-interface';
 import { RBACHandler } from './RBACHandler';
 import { RBACConfig } from './RBACConfig';
 
