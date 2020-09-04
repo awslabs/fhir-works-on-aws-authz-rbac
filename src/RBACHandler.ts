@@ -10,7 +10,13 @@ import {
     TypeOperation,
     SystemOperation,
     BatchReadWriteRequest,
+    SUPPORTED_R4_RESOURCES,
+    SUPPORTED_STU3_RESOURCES,
+    FhirVersion,
 } from 'fhir-works-on-aws-interface';
+
+import isEqual from 'lodash/isEqual';
+
 import { Rule, RBACConfig } from './RBACConfig';
 
 // eslint-disable-next-line import/prefer-default-export
@@ -19,11 +25,14 @@ export class RBACHandler implements Authorization {
 
     private readonly rules: RBACConfig;
 
-    constructor(rules: RBACConfig) {
+    private readonly fhirVersion: FhirVersion;
+
+    constructor(rules: RBACConfig, fhirVersion: FhirVersion) {
         this.rules = rules;
         if (this.rules.version !== this.version) {
             throw Error('Configuration version does not match handler version');
         }
+        this.fhirVersion = fhirVersion;
     }
 
     isAuthorized(request: AuthorizationRequest): boolean {
@@ -45,7 +54,17 @@ export class RBACHandler implements Authorization {
         return authZResponses.every(Boolean);
     }
 
-    private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string): boolean {
+    // eslint-disable-next-line class-methods-use-this
+    getRequesterUserId(accessToken: string): string {
+        const decoded = decode(accessToken, { json: true }) || {};
+        return decoded.username;
+    }
+
+    private isAllowed(
+        groups: string[],
+        operation: TypeOperation | SystemOperation | 'export',
+        resourceType?: string,
+    ): boolean {
         if (operation === 'read' && resourceType === 'metadata') {
             return true; // capabilities statement
         }
@@ -53,6 +72,16 @@ export class RBACHandler implements Authorization {
             const group: string = groups[index];
             if (this.rules.groupRules[group]) {
                 const rule: Rule = this.rules.groupRules[group];
+                // TODO: Check that user has all the permissions required for the different type of export
+                // Exp. Write checks for patient and group
+                if (operation === 'export' && resourceType === 'system') {
+                    if (
+                        (this.fhirVersion === '4.0.1' && isEqual(rule.resources, SUPPORTED_R4_RESOURCES)) ||
+                        (this.fhirVersion === '3.0.1' && isEqual(rule.resources, SUPPORTED_STU3_RESOURCES))
+                    ) {
+                        return true;
+                    }
+                }
                 if (
                     rule.operations.includes(operation) &&
                     ((resourceType && rule.resources.includes(resourceType)) || !resourceType)
