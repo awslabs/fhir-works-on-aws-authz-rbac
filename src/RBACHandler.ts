@@ -65,7 +65,7 @@ export class RBACHandler implements Authorization {
 
     private isAllowed(
         groups: string[],
-        operation: TypeOperation | SystemOperation | 'export',
+        operation: TypeOperation | SystemOperation,
         resourceType?: string,
         exportType?: ExportType,
     ): boolean {

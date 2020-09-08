@@ -50,7 +50,7 @@ const nonPractAndAuditorAccessToken: string =
 const practitionerAccessToken: string =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwiY29nbml0bzpncm91cHMiOlsicHJhY3RpdGlvbmVyIl0sIm5hbWUiOiJub3QgcmVhbCIsImlhdCI6MTUxNjIzOTAyMn0.bhZZ2O8Vph5aiPfs1n34Enw0075Tt4Cnk2FL2C3mHaQ';
 describe('isAuthorized', () => {
-    const authZHandler: RBACHandler = new RBACHandler(RBACRules);
+    const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
 
     test('TRUE; read direct patient; practitioner', async () => {
         const results: boolean = authZHandler.isAuthorized({
@@ -175,16 +175,19 @@ describe('isAuthorized', () => {
     test('ERROR: Attempt to create a handler to support a new config version', async () => {
         expect(() => {
             // eslint-disable-next-line no-new
-            new RBACHandler({
-                version: 2.0,
-                groupRules: {},
-            });
+            new RBACHandler(
+                {
+                    version: 2.0,
+                    groupRules: {},
+                },
+                '4.0.1',
+            );
         }).toThrow(new Error('Configuration version does not match handler version'));
     });
 });
 
 describe('isBundleRequestAuthorized', () => {
-    const authZHandler: RBACHandler = new RBACHandler(RBACRules);
+    const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
 
     test('TRUE; create direct patient in bundle; practitioner', async () => {
         const results: boolean = await authZHandler.isBundleRequestAuthorized({
