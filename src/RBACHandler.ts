@@ -42,7 +42,37 @@ export class RBACHandler implements Authorization {
         const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
-        return this.isAllowed(groups, request.operation, request.resourceType, request.exportType);
+        if (request.exportType) {
+            return this.isExportAllowed(groups, request.exportType);
+        }
+        return this.isAllowed(groups, request.operation, request.resourceType);
+    }
+
+    private isExportAllowed(groups: string[], exportType: ExportType): boolean {
+        for (let index = 0; index < groups.length; index += 1) {
+            const group: string = groups[index];
+            if (this.rules.groupRules[group]) {
+                const rule: Rule = this.rules.groupRules[group];
+                if (exportType) {
+                    if (exportType === 'system') {
+                        if (
+                            (this.fhirVersion === '4.0.1' &&
+                                isEqual(rule.resources.sort(), SUPPORTED_R4_RESOURCES.sort())) ||
+                            (this.fhirVersion === '3.0.1' &&
+                                isEqual(rule.resources.sort(), SUPPORTED_STU3_RESOURCES.sort()))
+                        ) {
+                            return true;
+                        }
+                    }
+                    if (exportType === 'group' || exportType === 'patient') {
+                        return rule.resources.every(resource => {
+                            return PATIENT_COMPARTMENT_RESOURCES.includes(<R4Resource>resource);
+                        });
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     async isBundleRequestAuthorized(request: AuthorizationBundleRequest): Promise<boolean> {
@@ -63,12 +93,7 @@ export class RBACHandler implements Authorization {
         return decoded.username;
     }
 
-    private isAllowed(
-        groups: string[],
-        operation: TypeOperation | SystemOperation,
-        resourceType?: string,
-        exportType?: ExportType,
-    ): boolean {
+    private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string): boolean {
         if (operation === 'read' && resourceType === 'metadata') {
             return true; // capabilities statement
         }
@@ -76,22 +101,6 @@ export class RBACHandler implements Authorization {
             const group: string = groups[index];
             if (this.rules.groupRules[group]) {
                 const rule: Rule = this.rules.groupRules[group];
-                if (exportType) {
-                    if (exportType === 'system') {
-                        if (
-                            (this.fhirVersion === '4.0.1' && isEqual(rule.resources, SUPPORTED_R4_RESOURCES)) ||
-                            (this.fhirVersion === '3.0.1' && isEqual(rule.resources, SUPPORTED_STU3_RESOURCES))
-                        ) {
-                            return true;
-                        }
-                    }
-                    if (exportType === 'group' || exportType === 'patient') {
-                        const resourcesUserDoesNotHavePermissionToAccess = PATIENT_COMPARTMENT_RESOURCES.filter(
-                            (res: R4Resource) => !rule.resources.includes(res),
-                        );
-                        return resourcesUserDoesNotHavePermissionToAccess.length === 0;
-                    }
-                }
                 if (
                     rule.operations.includes(operation) &&
                     ((resourceType && rule.resources.includes(resourceType)) || !resourceType)
