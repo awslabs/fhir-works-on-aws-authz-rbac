@@ -15,6 +15,7 @@ import {
     FhirVersion,
     PATIENT_COMPARTMENT_RESOURCES,
     R4Resource,
+    ExportType,
 } from 'fhir-works-on-aws-interface';
 
 import isEqual from 'lodash/isEqual';
@@ -41,7 +42,7 @@ export class RBACHandler implements Authorization {
         const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
-        return this.isAllowed(groups, request.operation, request.resourceType);
+        return this.isAllowed(groups, request.operation, request.resourceType, request.exportType);
     }
 
     async isBundleRequestAuthorized(request: AuthorizationBundleRequest): Promise<boolean> {
@@ -66,6 +67,7 @@ export class RBACHandler implements Authorization {
         groups: string[],
         operation: TypeOperation | SystemOperation | 'export',
         resourceType?: string,
+        exportType?: ExportType,
     ): boolean {
         if (operation === 'read' && resourceType === 'metadata') {
             return true; // capabilities statement
@@ -74,8 +76,8 @@ export class RBACHandler implements Authorization {
             const group: string = groups[index];
             if (this.rules.groupRules[group]) {
                 const rule: Rule = this.rules.groupRules[group];
-                if (operation === 'export') {
-                    if (resourceType === 'system') {
+                if (exportType) {
+                    if (exportType === 'system') {
                         if (
                             (this.fhirVersion === '4.0.1' && isEqual(rule.resources, SUPPORTED_R4_RESOURCES)) ||
                             (this.fhirVersion === '3.0.1' && isEqual(rule.resources, SUPPORTED_STU3_RESOURCES))
@@ -83,7 +85,7 @@ export class RBACHandler implements Authorization {
                             return true;
                         }
                     }
-                    if (resourceType === 'group' || resourceType === 'patient') {
+                    if (exportType === 'group' || exportType === 'patient') {
                         const resourcesUserDoesNotHavePermissionToAccess = PATIENT_COMPARTMENT_RESOURCES.filter(
                             (res: R4Resource) => !rule.resources.includes(res),
                         );
