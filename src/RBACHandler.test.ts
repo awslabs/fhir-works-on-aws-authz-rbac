@@ -2,7 +2,9 @@
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  */
-import { R4Resource } from 'fhir-works-on-aws-interface';
+import { PATIENT_COMPARTMENT_RESOURCES, R4Resource, SUPPORTED_R4_RESOURCES } from 'fhir-works-on-aws-interface';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import shuffle from 'shuffle-array';
 import { RBACHandler } from './RBACHandler';
 import { RBACConfig } from './RBACConfig';
 
@@ -183,6 +185,94 @@ describe('isAuthorized', () => {
                 '4.0.1',
             );
         }).toThrow(new Error('Configuration version does not match handler version'));
+    });
+});
+
+describe('isAuthorized:Export', () => {
+    const customRBACRules: RBACConfig = {
+        version: 1.0,
+        groupRules: {
+            practitioner: {
+                operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type', 'transaction'],
+                resources: [],
+            },
+        },
+    };
+    test('TRUE; GET system Export with permission to all resources', async () => {
+        customRBACRules.groupRules.practitioner.resources = SUPPORTED_R4_RESOURCES;
+        const authZHandler: RBACHandler = new RBACHandler(customRBACRules, '4.0.1');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            operation: 'read',
+            exportType: 'system',
+        });
+        expect(results).toEqual(true);
+    });
+
+    test('TRUE; GET system Export with permission to all resources, in mixed order', async () => {
+        customRBACRules.groupRules.practitioner.resources = shuffle(SUPPORTED_R4_RESOURCES);
+        const authZHandler: RBACHandler = new RBACHandler(customRBACRules, '4.0.1');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            operation: 'read',
+            exportType: 'system',
+        });
+        expect(results).toEqual(true);
+    });
+
+    test('FALSE; GET system Export without permission to all resources', async () => {
+        customRBACRules.groupRules.practitioner.resources = ['Patient', 'MedicationRequest'];
+        const authZHandler: RBACHandler = new RBACHandler(customRBACRules, '4.0.1');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            operation: 'read',
+            exportType: 'system',
+        });
+        expect(results).toEqual(false);
+    });
+
+    test('TRUE; GET patient with permission to all resources in Patient compartment', async () => {
+        customRBACRules.groupRules.practitioner.resources = PATIENT_COMPARTMENT_RESOURCES;
+        const authZHandler: RBACHandler = new RBACHandler(customRBACRules, '4.0.1');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            operation: 'read',
+            exportType: 'patient',
+        });
+        expect(results).toEqual(true);
+    });
+
+    test('FALSE; GET patient without permission to all resources in Patient compartment', async () => {
+        customRBACRules.groupRules.practitioner.resources = ['Patient', 'MedicationRequest'];
+        const authZHandler: RBACHandler = new RBACHandler(customRBACRules, '4.0.1');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            operation: 'read',
+            exportType: 'patient',
+        });
+        expect(results).toEqual(false);
+    });
+
+    test('TRUE; GET group with permission to all resources in Patient compartment', async () => {
+        customRBACRules.groupRules.practitioner.resources = PATIENT_COMPARTMENT_RESOURCES;
+        const authZHandler: RBACHandler = new RBACHandler(customRBACRules, '4.0.1');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            operation: 'read',
+            exportType: 'group',
+        });
+        expect(results).toEqual(true);
+    });
+
+    test('FALSE; GET group without permission to all resources in Patient compartment', async () => {
+        customRBACRules.groupRules.practitioner.resources = ['Patient', 'MedicationRequest'];
+        const authZHandler: RBACHandler = new RBACHandler(customRBACRules, '4.0.1');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            operation: 'read',
+            exportType: 'group',
+        });
+        expect(results).toEqual(false);
     });
 });
 
