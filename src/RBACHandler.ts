@@ -13,6 +13,8 @@ import {
     SUPPORTED_R4_RESOURCES,
     SUPPORTED_STU3_RESOURCES,
     FhirVersion,
+    PATIENT_COMPARTMENT_RESOURCES,
+    R4Resource,
 } from 'fhir-works-on-aws-interface';
 
 import isEqual from 'lodash/isEqual';
@@ -72,14 +74,20 @@ export class RBACHandler implements Authorization {
             const group: string = groups[index];
             if (this.rules.groupRules[group]) {
                 const rule: Rule = this.rules.groupRules[group];
-                // TODO: Check that user has all the permissions required for the different type of export
-                // Exp. Write checks for patient and group
-                if (operation === 'export' && resourceType === 'system') {
-                    if (
-                        (this.fhirVersion === '4.0.1' && isEqual(rule.resources, SUPPORTED_R4_RESOURCES)) ||
-                        (this.fhirVersion === '3.0.1' && isEqual(rule.resources, SUPPORTED_STU3_RESOURCES))
-                    ) {
-                        return true;
+                if (operation === 'export') {
+                    if (resourceType === 'system') {
+                        if (
+                            (this.fhirVersion === '4.0.1' && isEqual(rule.resources, SUPPORTED_R4_RESOURCES)) ||
+                            (this.fhirVersion === '3.0.1' && isEqual(rule.resources, SUPPORTED_STU3_RESOURCES))
+                        ) {
+                            return true;
+                        }
+                    }
+                    if (resourceType === 'group' || resourceType === 'patient') {
+                        const resourcesUserDoesNotHavePermissionToAccess = PATIENT_COMPARTMENT_RESOURCES.filter(
+                            (res: R4Resource) => !rule.resources.includes(res),
+                        );
+                        return resourcesUserDoesNotHavePermissionToAccess.length === 0;
                     }
                 }
                 if (
