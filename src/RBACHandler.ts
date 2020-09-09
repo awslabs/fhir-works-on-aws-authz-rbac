@@ -15,9 +15,7 @@ import {
     FhirVersion,
     R4_PATIENT_COMPARTMENT_RESOURCES,
     STU3_PATIENT_COMPARTMENT_RESOURCES,
-    R4Resource,
     ExportType,
-    STU3Resource,
 } from 'fhir-works-on-aws-interface';
 
 import isEqual from 'lodash/isEqual';
