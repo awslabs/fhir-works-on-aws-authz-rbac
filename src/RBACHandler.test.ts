@@ -11,7 +11,6 @@ import {
     FhirVersion,
     BASE_STU3_RESOURCES,
 } from 'fhir-works-on-aws-interface';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import shuffle from 'shuffle-array';
 import { RBACHandler } from './RBACHandler';
 import { RBACConfig } from './RBACConfig';
