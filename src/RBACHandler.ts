@@ -10,12 +10,14 @@ import {
     TypeOperation,
     SystemOperation,
     BatchReadWriteRequest,
-    SUPPORTED_R4_RESOURCES,
-    SUPPORTED_STU3_RESOURCES,
+    BASE_R4_RESOURCES,
+    BASE_STU3_RESOURCES,
     FhirVersion,
-    PATIENT_COMPARTMENT_RESOURCES,
+    R4_PATIENT_COMPARTMENT_RESOURCES,
+    STU3_PATIENT_COMPARTMENT_RESOURCES,
     R4Resource,
     ExportType,
+    STU3Resource,
 } from 'fhir-works-on-aws-interface';
 
 import isEqual from 'lodash/isEqual';
@@ -57,17 +59,23 @@ export class RBACHandler implements Authorization {
                     if (exportType === 'system') {
                         if (
                             (this.fhirVersion === '4.0.1' &&
-                                isEqual(rule.resources.sort(), SUPPORTED_R4_RESOURCES.sort())) ||
-                            (this.fhirVersion === '3.0.1' &&
-                                isEqual(rule.resources.sort(), SUPPORTED_STU3_RESOURCES.sort()))
+                                isEqual(rule.resources.sort(), BASE_R4_RESOURCES.sort())) ||
+                            (this.fhirVersion === '3.0.1' && isEqual(rule.resources.sort(), BASE_STU3_RESOURCES.sort()))
                         ) {
                             return true;
                         }
                     }
                     if (exportType === 'group' || exportType === 'patient') {
-                        return rule.resources.every(resource => {
-                            return PATIENT_COMPARTMENT_RESOURCES.includes(<R4Resource>resource);
-                        });
+                        if (this.fhirVersion === '4.0.1') {
+                            return R4_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
+                                return rule.resources.includes(resource);
+                            });
+                        }
+                        if (this.fhirVersion === '3.0.1') {
+                            return STU3_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
+                                return rule.resources.includes(resource);
+                            });
+                        }
                     }
                 }
             }
