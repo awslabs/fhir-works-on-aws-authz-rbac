@@ -53,7 +53,7 @@ export class RBACHandler implements Authorization {
             const group: string = groups[index];
             if (this.rules.groupRules[group]) {
                 const rule: Rule = this.rules.groupRules[group];
-                if (exportType) {
+                if (exportType && rule.operations.includes('read')) {
                     if (exportType === 'system') {
                         if (
                             (this.fhirVersion === '4.0.1' &&

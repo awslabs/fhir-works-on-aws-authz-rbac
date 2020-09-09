@@ -193,11 +193,19 @@ describe('isAuthorized:Export', () => {
         version: 1.0,
         groupRules: {
             practitioner: {
-                operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type', 'transaction'],
+                operations: ['read'],
                 resources: [],
             },
         },
     };
+
+    afterEach(() => {
+        customRBACRules.groupRules.practitioner = {
+            operations: ['read'],
+            resources: [],
+        };
+    });
+
     test('TRUE; GET system Export with permission to all resources', async () => {
         customRBACRules.groupRules.practitioner.resources = SUPPORTED_R4_RESOURCES;
         const authZHandler: RBACHandler = new RBACHandler(customRBACRules, '4.0.1');
@@ -222,6 +230,18 @@ describe('isAuthorized:Export', () => {
 
     test('FALSE; GET system Export without permission to all resources', async () => {
         customRBACRules.groupRules.practitioner.resources = ['Patient', 'MedicationRequest'];
+        const authZHandler: RBACHandler = new RBACHandler(customRBACRules, '4.0.1');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            operation: 'read',
+            exportType: 'system',
+        });
+        expect(results).toEqual(false);
+    });
+
+    test('FALSE; GET system Export with permission to CREATE all resources but not READ them', async () => {
+        customRBACRules.groupRules.practitioner.resources = SUPPORTED_R4_RESOURCES;
+        customRBACRules.groupRules.practitioner.operations = ['create'];
         const authZHandler: RBACHandler = new RBACHandler(customRBACRules, '4.0.1');
         const results: boolean = authZHandler.isAuthorized({
             accessToken: practitionerAccessToken,
