@@ -10,7 +10,16 @@ import {
     TypeOperation,
     SystemOperation,
     BatchReadWriteRequest,
+    BASE_R4_RESOURCES,
+    BASE_STU3_RESOURCES,
+    FhirVersion,
+    R4_PATIENT_COMPARTMENT_RESOURCES,
+    STU3_PATIENT_COMPARTMENT_RESOURCES,
+    ExportType,
 } from 'fhir-works-on-aws-interface';
+
+import isEqual from 'lodash/isEqual';
+
 import { Rule, RBACConfig } from './RBACConfig';
 
 // eslint-disable-next-line import/prefer-default-export
@@ -19,18 +28,59 @@ export class RBACHandler implements Authorization {
 
     private readonly rules: RBACConfig;
 
-    constructor(rules: RBACConfig) {
+    private readonly fhirVersion: FhirVersion;
+
+    constructor(rules: RBACConfig, fhirVersion: FhirVersion) {
         this.rules = rules;
         if (this.rules.version !== this.version) {
             throw Error('Configuration version does not match handler version');
         }
+        this.fhirVersion = fhirVersion;
     }
 
     isAuthorized(request: AuthorizationRequest): boolean {
         const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
+        if (request.exportType) {
+            return this.isExportAllowed(groups, request.exportType);
+        }
         return this.isAllowed(groups, request.operation, request.resourceType);
+    }
+
+    private isExportAllowed(groups: string[], exportType: ExportType): boolean {
+        for (let index = 0; index < groups.length; index += 1) {
+            const group: string = groups[index];
+            if (this.rules.groupRules[group]) {
+                const rule: Rule = this.rules.groupRules[group];
+                if (exportType && rule.operations.includes('read')) {
+                    if (exportType === 'system') {
+                        // TODO: Enable supporting of different profiles by specifying the resources you would want to export
+                        // in BASE_R4_RESOURCES
+                        if (
+                            (this.fhirVersion === '4.0.1' &&
+                                isEqual(rule.resources.sort(), BASE_R4_RESOURCES.sort())) ||
+                            (this.fhirVersion === '3.0.1' && isEqual(rule.resources.sort(), BASE_STU3_RESOURCES.sort()))
+                        ) {
+                            return true;
+                        }
+                    }
+                    if (exportType === 'group' || exportType === 'patient') {
+                        if (this.fhirVersion === '4.0.1') {
+                            return R4_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
+                                return rule.resources.includes(resource);
+                            });
+                        }
+                        if (this.fhirVersion === '3.0.1') {
+                            return STU3_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
+                                return rule.resources.includes(resource);
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     async isBundleRequestAuthorized(request: AuthorizationBundleRequest): Promise<boolean> {
@@ -43,6 +93,12 @@ export class RBACHandler implements Authorization {
         });
         const authZResponses: boolean[] = await Promise.all(authZPromises);
         return authZResponses.every(Boolean);
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    getRequesterUserId(accessToken: string): string {
+        const decoded = decode(accessToken, { json: true }) || {};
+        return decoded.username;
     }
 
     private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string): boolean {
