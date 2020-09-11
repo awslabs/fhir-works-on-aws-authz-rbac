@@ -55,6 +55,8 @@ export class RBACHandler implements Authorization {
                 const rule: Rule = this.rules.groupRules[group];
                 if (exportType && rule.operations.includes('read')) {
                     if (exportType === 'system') {
+                        // TODO: Enable supporting of different profiles by specifying the resources you would want to export
+                        // in BASE_R4_RESOURCES
                         if (
                             (this.fhirVersion === '4.0.1' &&
                                 isEqual(rule.resources.sort(), BASE_R4_RESOURCES.sort())) ||
