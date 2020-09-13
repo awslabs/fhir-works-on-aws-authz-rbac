@@ -16,6 +16,7 @@ import {
     R4_PATIENT_COMPARTMENT_RESOURCES,
     STU3_PATIENT_COMPARTMENT_RESOURCES,
     ExportType,
+    ExportAuth,
 } from 'fhir-works-on-aws-interface';
 
 import isEqual from 'lodash/isEqual';
@@ -42,19 +43,24 @@ export class RBACHandler implements Authorization {
         const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
-        if (request.exportType) {
-            return this.isExportAllowed(groups, request.exportType);
+        if (request.export) {
+            const requesterUserId = this.getRequesterUserId(request.accessToken);
+            return this.isExportAllowed(groups, requesterUserId, request.export);
         }
         return this.isAllowed(groups, request.operation, request.resourceType);
     }
 
-    private isExportAllowed(groups: string[], exportType: ExportType): boolean {
+    private isExportAllowed(groups: string[], requesterUserId: string, exportAuth: ExportAuth): boolean {
+        const { jobRequesterUserId, operation, type } = exportAuth;
+        if (['get-status', 'cancel-export'].includes(operation)) {
+            return requesterUserId === jobRequesterUserId;
+        }
         for (let index = 0; index < groups.length; index += 1) {
             const group: string = groups[index];
             if (this.rules.groupRules[group]) {
                 const rule: Rule = this.rules.groupRules[group];
-                if (exportType && rule.operations.includes('read')) {
-                    if (exportType === 'system') {
+                if (type && rule.operations.includes('read')) {
+                    if (type === 'system') {
                         // TODO: Enable supporting of different profiles by specifying the resources you would want to export
                         // in BASE_R4_RESOURCES
                         if (
@@ -65,7 +71,7 @@ export class RBACHandler implements Authorization {
                             return true;
                         }
                     }
-                    if (exportType === 'group' || exportType === 'patient') {
+                    if (type === 'group' || type === 'patient') {
                         if (this.fhirVersion === '4.0.1') {
                             return R4_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
                                 return rule.resources.includes(resource);
