@@ -52,41 +52,15 @@ const RBACRules: RBACConfig = {
         },
     },
 };
-// Decoded JWT
-// {
-//   "sub": "fake",
-//   "username": "FakeUser",
-//   "iat": 1516239022
-// }
+
 const noGroupsAccessToken: string =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwidXNlcm5hbWUiOiJGYWtlVXNlciIsImlhdCI6MTUxNjIzOTAyMn0.v9lkm0coU0t-dUFvBqhV8oMxWG-eU09AupJN4UlfVDI';
-// Decoded JWT
-// {
-//  "sub": "fake",
-//  "cognito:groups": [
-//   "non-practitioner",
-//   "auditor"
-//  ],
-//  "username": "FakeUser",
-//  "iat": 1516239022,
-//  "jti": "f30cd238-5b16-4dcd-8968-332f5d75ddc4",
-//  "exp": 1600023733
-// }
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwibmFtZSI6Im5vdCByZWFsIiwiaWF0IjoxNTE2MjM5MDIyfQ.kCA912Pb__JP54WjgZOazu1x8w5KU-kL0iRwQEVFNPw';
+
 const nonPractAndAuditorAccessToken: string =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwiY29nbml0bzpncm91cHMiOlsibm9uLXByYWN0aXRpb25lciIsImF1ZGl0b3IiXSwidXNlcm5hbWUiOiJGYWtlVXNlciIsImlhdCI6MTUxNjIzOTAyMn0._9NJHvjM42dFaVHrzAYPqNfUv0-Qdo6q7vKyvTofdsA';
-// Decoded JWT
-// {
-//  "sub": "fake",
-//  "cognito:groups": [
-//   "practitioner"
-//  ],
-//  "username": "FakeUser",
-//  "iat": 1516239022,
-//  "jti": "2fac726b-6bb0-4bd3-ba00-326c4c9801f4",
-//  "exp": 1600023504
-// }
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwiY29nbml0bzpncm91cHMiOlsibm9uLXByYWN0aXRpb25lciIsImF1ZGl0b3IiXSwibmFtZSI6Im5vdCByZWFsIiwiaWF0IjoxNTE2MjM5MDIyfQ.HBNrpqQZPvj43qv1QNFr5u9PoHrtqK4ApsRpN2t7Rz8';
+
 const practitionerAccessToken: string =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwiY29nbml0bzpncm91cHMiOlsicHJhY3RpdGlvbmVyIl0sInVzZXJuYW1lIjoiRmFrZVVzZXIiLCJpYXQiOjE1MTYyMzkwMjJ9.XnapGEmAOikHbQ5wyGm7josZszAcNlR1FY0CgsYF8wo';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwiY29nbml0bzpncm91cHMiOlsicHJhY3RpdGlvbmVyIl0sIm5hbWUiOiJub3QgcmVhbCIsImlhdCI6MTUxNjIzOTAyMn0.bhZZ2O8Vph5aiPfs1n34Enw0075Tt4Cnk2FL2C3mHaQ';
 
 describe('isAuthorized', () => {
     const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
@@ -391,7 +365,7 @@ describe('isAuthorized:Export', () => {
             });
         });
 
-        test(`TRUE:${fhirVersion}: Get job status`, () => {
+        test(`TRUE:${fhirVersion}: Get export job status`, () => {
             const authZHandler: RBACHandler = new RBACHandler(
                 getTestPractitionerRBACRules(['read'], BASE_RESOURCES),
                 fhirVersion,
@@ -407,7 +381,7 @@ describe('isAuthorized:Export', () => {
             expect(results).toEqual(true);
         });
 
-        test(`TRUE:${fhirVersion}: Cancel job`, () => {
+        test(`TRUE:${fhirVersion}: Cancel export job`, () => {
             const authZHandler: RBACHandler = new RBACHandler(
                 getTestPractitionerRBACRules(['delete'], BASE_RESOURCES),
                 fhirVersion,
