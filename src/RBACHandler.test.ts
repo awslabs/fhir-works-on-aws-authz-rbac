@@ -270,9 +270,9 @@ describe('isAuthorized:Export', () => {
                 const results: boolean = authZHandler.isAuthorized({
                     accessToken: practitionerAccessToken,
                     operation: 'read',
-                    export: {
+                    bulkDataAuth: {
                         operation: 'initiate-export',
-                        type: 'system',
+                        exportType: 'system',
                     },
                 });
                 expect(results).toEqual(true);
@@ -286,9 +286,9 @@ describe('isAuthorized:Export', () => {
                 const results: boolean = authZHandler.isAuthorized({
                     accessToken: practitionerAccessToken,
                     operation: 'read',
-                    export: {
+                    bulkDataAuth: {
                         operation: 'initiate-export',
-                        type: 'system',
+                        exportType: 'system',
                     },
                 });
                 expect(results).toEqual(true);
@@ -302,9 +302,9 @@ describe('isAuthorized:Export', () => {
                 const results: boolean = authZHandler.isAuthorized({
                     accessToken: practitionerAccessToken,
                     operation: 'read',
-                    export: {
+                    bulkDataAuth: {
                         operation: 'initiate-export',
-                        type: 'system',
+                        exportType: 'system',
                     },
                 });
                 expect(results).toEqual(false);
@@ -318,9 +318,9 @@ describe('isAuthorized:Export', () => {
                 const results: boolean = authZHandler.isAuthorized({
                     accessToken: practitionerAccessToken,
                     operation: 'read',
-                    export: {
+                    bulkDataAuth: {
                         operation: 'initiate-export',
-                        type: 'system',
+                        exportType: 'system',
                     },
                 });
                 expect(results).toEqual(false);
@@ -334,9 +334,9 @@ describe('isAuthorized:Export', () => {
                 const results: boolean = authZHandler.isAuthorized({
                     accessToken: practitionerAccessToken,
                     operation: 'read',
-                    export: {
+                    bulkDataAuth: {
                         operation: 'initiate-export',
-                        type: 'patient',
+                        exportType: 'patient',
                     },
                 });
                 expect(results).toEqual(true);
@@ -350,9 +350,9 @@ describe('isAuthorized:Export', () => {
                 const results: boolean = authZHandler.isAuthorized({
                     accessToken: practitionerAccessToken,
                     operation: 'read',
-                    export: {
+                    bulkDataAuth: {
                         operation: 'initiate-export',
-                        type: 'patient',
+                        exportType: 'patient',
                     },
                 });
                 expect(results).toEqual(false);
@@ -366,9 +366,9 @@ describe('isAuthorized:Export', () => {
                 const results: boolean = authZHandler.isAuthorized({
                     accessToken: practitionerAccessToken,
                     operation: 'read',
-                    export: {
+                    bulkDataAuth: {
                         operation: 'initiate-export',
-                        type: 'group',
+                        exportType: 'group',
                     },
                 });
                 expect(results).toEqual(true);
@@ -382,82 +382,45 @@ describe('isAuthorized:Export', () => {
                 const results: boolean = authZHandler.isAuthorized({
                     accessToken: practitionerAccessToken,
                     operation: 'read',
-                    export: {
+                    bulkDataAuth: {
                         operation: 'initiate-export',
-                        type: 'group',
+                        exportType: 'group',
                     },
                 });
                 expect(results).toEqual(false);
             });
         });
 
-        describe('get-status', () => {
-            test(`TRUE:${fhirVersion}: Get job status`, () => {
-                const authZHandler: RBACHandler = new RBACHandler(
-                    getTestPractitionerRBACRules(['read'], BASE_RESOURCES),
-                    fhirVersion,
-                );
-                const results: boolean = authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'read',
-                    export: {
-                        operation: 'get-status',
-                        jobRequesterUserId: 'FakeUser',
-                        type: 'system',
-                    },
-                });
-                expect(results).toEqual(true);
+        test(`TRUE:${fhirVersion}: Get job status`, () => {
+            const authZHandler: RBACHandler = new RBACHandler(
+                getTestPractitionerRBACRules(['read'], BASE_RESOURCES),
+                fhirVersion,
+            );
+            const results: boolean = authZHandler.isAuthorized({
+                accessToken: practitionerAccessToken,
+                operation: 'read',
+                bulkDataAuth: {
+                    operation: 'get-status-export',
+                    exportType: 'system',
+                },
             });
-            test(`FALSE:${fhirVersion}: Get job status`, () => {
-                const authZHandler: RBACHandler = new RBACHandler(
-                    getTestPractitionerRBACRules(['read'], BASE_RESOURCES),
-                    fhirVersion,
-                );
-                const results: boolean = authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'read',
-                    export: {
-                        operation: 'get-status',
-                        jobRequesterUserId: 'RandomUser',
-                        type: 'system',
-                    },
-                });
-                expect(results).toEqual(false);
-            });
+            expect(results).toEqual(true);
         });
-        describe('cancel-export', () => {
-            test(`TRUE:${fhirVersion}: Cancel job`, () => {
-                const authZHandler: RBACHandler = new RBACHandler(
-                    getTestPractitionerRBACRules(['delete'], BASE_RESOURCES),
-                    fhirVersion,
-                );
-                const results: boolean = authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'delete',
-                    export: {
-                        operation: 'cancel-export',
-                        jobRequesterUserId: 'FakeUser',
-                        type: 'system',
-                    },
-                });
-                expect(results).toEqual(true);
+
+        test(`TRUE:${fhirVersion}: Cancel job`, () => {
+            const authZHandler: RBACHandler = new RBACHandler(
+                getTestPractitionerRBACRules(['delete'], BASE_RESOURCES),
+                fhirVersion,
+            );
+            const results: boolean = authZHandler.isAuthorized({
+                accessToken: practitionerAccessToken,
+                operation: 'delete',
+                bulkDataAuth: {
+                    operation: 'cancel-export',
+                    exportType: 'system',
+                },
             });
-            test(`FALSE:${fhirVersion}: Cancel job`, () => {
-                const authZHandler: RBACHandler = new RBACHandler(
-                    getTestPractitionerRBACRules(['delete'], BASE_RESOURCES),
-                    fhirVersion,
-                );
-                const results: boolean = authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'delete',
-                    export: {
-                        operation: 'cancel-export',
-                        jobRequesterUserId: 'RandomUser',
-                        type: 'system',
-                    },
-                });
-                expect(results).toEqual(false);
-            });
+            expect(results).toEqual(true);
         });
     });
 });
