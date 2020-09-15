@@ -48,11 +48,14 @@ export class RBACHandler implements Authorization {
         return this.isAllowed(groups, request.operation, request.resourceType);
     }
 
+    // eslint-disable-next-line class-methods-use-this
+    isAllowedToAccessBulkDataJob(requesterId: string, jobOwnerId: string): boolean {
+        return requesterId === jobOwnerId;
+    }
+
     private isBulkDataAccessAllowed(groups: string[], bulkDataAuth: BulkDataAuth): boolean {
         const { operation, exportType } = bulkDataAuth;
         if (['get-status-export', 'cancel-export', 'get-status-import', 'cancel-import'].includes(operation)) {
-            // The persistence layer has access to the jobId and requesterUserId and will check whether
-            // the user has access to the job
             return true;
         }
         if (operation === 'initiate-export') {

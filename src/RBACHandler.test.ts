@@ -210,26 +210,6 @@ describe('isAuthorized:Export', () => {
         },
     });
 
-    // const getBaseResource = (fhirVersion: string) => {
-    //     return fhirVersion === '3.0.1' ? BASE_STU3_RESOURCES : BASE_R4_RESOURCES;
-    // };
-    //
-    // each(['3.0.1', '4.0.1']).test('TRUE:%s: GET system Export with permission to all resources', fhirVersion => {
-    //     const authZHandler: RBACHandler = new RBACHandler(
-    //         getTestPractitionerRBACRules(['read'], getBaseResource(fhirVersion)),
-    //         fhirVersion,
-    //     );
-    //     const results: boolean = authZHandler.isAuthorized({
-    //         accessToken: practitionerAccessToken,
-    //         operation: 'read',
-    //         export: {
-    //             operation: 'initiate-export',
-    //             type: 'system',
-    //         },
-    //     });
-    //     expect(results).toEqual(true);
-    // });
-
     const fhirVersions: FhirVersion[] = ['3.0.1', '4.0.1'];
     fhirVersions.forEach((fhirVersion: FhirVersion) => {
         const BASE_RESOURCES = fhirVersion === '3.0.1' ? BASE_STU3_RESOURCES : BASE_R4_RESOURCES;
@@ -440,5 +420,19 @@ describe('isBundleRequestAuthorized', () => {
             ],
         });
         expect(results).toEqual(false);
+    });
+});
+
+describe('isAllowedToAccessBulkDataJob', () => {
+    const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
+
+    test('TRUE: JobOwnerId and requesterUserId matches', () => {
+        const isAllowed = authZHandler.isAllowedToAccessBulkDataJob('userId-1', 'userId-1');
+        expect(isAllowed).toBeTruthy();
+    });
+
+    test('FALSE: JobOwnerId and requesterUserId does not match', () => {
+        const isAllowed = authZHandler.isAllowedToAccessBulkDataJob('userId-1', 'userId-2');
+        expect(isAllowed).toBeFalsy();
     });
 });
