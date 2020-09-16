@@ -10,6 +10,7 @@ import {
     STU3_PATIENT_COMPARTMENT_RESOURCES,
     FhirVersion,
     BASE_STU3_RESOURCES,
+    AccessBulkDataJobRequest,
 } from 'fhir-works-on-aws-interface';
 import shuffle from 'shuffle-array';
 import each from 'jest-each';
@@ -427,12 +428,20 @@ describe('isAllowedToAccessBulkDataJob', () => {
     const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
 
     test('TRUE: JobOwnerId and requesterUserId matches', () => {
-        const isAllowed = authZHandler.isAllowedToAccessBulkDataJob('userId-1', 'userId-1');
+        const accessBulkDataJobRequest: AccessBulkDataJobRequest = {
+            jobOwnerId: 'userId-1',
+            requesterUserId: 'userId-1',
+        };
+        const isAllowed = authZHandler.isAccessBulkDataJobAllowed(accessBulkDataJobRequest);
         expect(isAllowed).toBeTruthy();
     });
 
     test('FALSE: JobOwnerId and requesterUserId does not match', () => {
-        const isAllowed = authZHandler.isAllowedToAccessBulkDataJob('userId-1', 'userId-2');
+        const accessBulkDataJobRequest: AccessBulkDataJobRequest = {
+            jobOwnerId: 'userId-1',
+            requesterUserId: 'userId-2',
+        };
+        const isAllowed = authZHandler.isAccessBulkDataJobAllowed(accessBulkDataJobRequest);
         expect(isAllowed).toBeFalsy();
     });
 });

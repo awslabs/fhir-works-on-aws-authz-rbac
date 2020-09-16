@@ -16,6 +16,7 @@ import {
     R4_PATIENT_COMPARTMENT_RESOURCES,
     STU3_PATIENT_COMPARTMENT_RESOURCES,
     BulkDataAuth,
+    AccessBulkDataJobRequest,
 } from 'fhir-works-on-aws-interface';
 
 import isEqual from 'lodash/isEqual';
@@ -49,8 +50,8 @@ export class RBACHandler implements Authorization {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    isAllowedToAccessBulkDataJob(requesterId: string, jobOwnerId: string): boolean {
-        return requesterId === jobOwnerId;
+    isAccessBulkDataJobAllowed(request: AccessBulkDataJobRequest): boolean {
+        return request.requesterUserId === request.jobOwnerId;
     }
 
     private isBulkDataAccessAllowed(groups: string[], bulkDataAuth: BulkDataAuth): boolean {
