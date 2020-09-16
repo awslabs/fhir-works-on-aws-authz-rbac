@@ -15,7 +15,8 @@ import {
     FhirVersion,
     R4_PATIENT_COMPARTMENT_RESOURCES,
     STU3_PATIENT_COMPARTMENT_RESOURCES,
-    ExportType,
+    BulkDataAuth,
+    AccessBulkDataJobRequest,
 } from 'fhir-works-on-aws-interface';
 
 import isEqual from 'lodash/isEqual';
@@ -42,44 +43,59 @@ export class RBACHandler implements Authorization {
         const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
-        if (request.exportType) {
-            return this.isExportAllowed(groups, request.exportType);
+        if (request.bulkDataAuth) {
+            return this.isBulkDataAccessAllowed(groups, request.bulkDataAuth);
         }
         return this.isAllowed(groups, request.operation, request.resourceType);
     }
 
-    private isExportAllowed(groups: string[], exportType: ExportType): boolean {
-        for (let index = 0; index < groups.length; index += 1) {
-            const group: string = groups[index];
-            if (this.rules.groupRules[group]) {
-                const rule: Rule = this.rules.groupRules[group];
-                if (exportType && rule.operations.includes('read')) {
-                    if (exportType === 'system') {
-                        // TODO: Enable supporting of different profiles by specifying the resources you would want to export
-                        // in BASE_R4_RESOURCES
-                        if (
-                            (this.fhirVersion === '4.0.1' &&
-                                isEqual(rule.resources.sort(), BASE_R4_RESOURCES.sort())) ||
-                            (this.fhirVersion === '3.0.1' && isEqual(rule.resources.sort(), BASE_STU3_RESOURCES.sort()))
-                        ) {
-                            return true;
+    // eslint-disable-next-line class-methods-use-this
+    isAccessBulkDataJobAllowed(request: AccessBulkDataJobRequest): boolean {
+        return request.requesterUserId === request.jobOwnerId;
+    }
+
+    private isBulkDataAccessAllowed(groups: string[], bulkDataAuth: BulkDataAuth): boolean {
+        const { operation, exportType } = bulkDataAuth;
+        if (['get-status-export', 'cancel-export', 'get-status-import', 'cancel-import'].includes(operation)) {
+            return true;
+        }
+        if (operation === 'initiate-export') {
+            for (let index = 0; index < groups.length; index += 1) {
+                const group: string = groups[index];
+                if (this.rules.groupRules[group]) {
+                    const rule: Rule = this.rules.groupRules[group];
+                    if (exportType && rule.operations.includes('read')) {
+                        if (exportType === 'system') {
+                            // TODO: Enable supporting of different profiles by specifying the resources you would want to export
+                            // in BASE_R4_RESOURCES
+                            if (
+                                (this.fhirVersion === '4.0.1' &&
+                                    isEqual(rule.resources.sort(), BASE_R4_RESOURCES.sort())) ||
+                                (this.fhirVersion === '3.0.1' &&
+                                    isEqual(rule.resources.sort(), BASE_STU3_RESOURCES.sort()))
+                            ) {
+                                return true;
+                            }
                         }
-                    }
-                    if (exportType === 'group' || exportType === 'patient') {
-                        if (this.fhirVersion === '4.0.1') {
-                            return R4_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
-                                return rule.resources.includes(resource);
-                            });
-                        }
-                        if (this.fhirVersion === '3.0.1') {
-                            return STU3_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
-                                return rule.resources.includes(resource);
-                            });
+                        if (exportType === 'group' || exportType === 'patient') {
+                            if (this.fhirVersion === '4.0.1') {
+                                return R4_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
+                                    return rule.resources.includes(resource);
+                                });
+                            }
+                            if (this.fhirVersion === '3.0.1') {
+                                return STU3_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
+                                    return rule.resources.includes(resource);
+                                });
+                            }
                         }
                     }
                 }
             }
+        } else if (operation === 'initiate-import') {
+            // TODO Handle `initiate-import` auth
         }
+
         return false;
     }
 
