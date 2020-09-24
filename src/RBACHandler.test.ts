@@ -226,3 +226,45 @@ describe('isBundleRequestAuthorized', () => {
         expect(results).toEqual(false);
     });
 });
+
+describe('getAllowedResourceTypesForOperation', () => {
+    test('Single group', async () => {
+        const authZHandler: RBACHandler = new RBACHandler(RBACRules);
+        expect(
+            authZHandler.getAllowedResourceTypesForOperation({
+                accessToken: practitionerAccessToken,
+                operation: 'search-type',
+            }),
+        ).toEqual([...financialResources, 'Patient']);
+    });
+
+    test('No groups', () => {
+        const authZHandler: RBACHandler = new RBACHandler(RBACRules);
+        expect(
+            authZHandler.getAllowedResourceTypesForOperation({
+                accessToken: noGroupsAccessToken,
+                operation: 'search-type',
+            }),
+        ).toEqual([]);
+    });
+
+    test('Multiple groups', () => {
+        const authZHandler: RBACHandler = new RBACHandler(RBACRules);
+        expect(
+            authZHandler.getAllowedResourceTypesForOperation({
+                accessToken: nonPractAndAuditorAccessToken,
+                operation: 'search-type',
+            }),
+        ).toEqual([...financialResources, 'Patient']);
+    });
+
+    test('operation not allowed', () => {
+        const authZHandler: RBACHandler = new RBACHandler(RBACRules);
+        expect(
+            authZHandler.getAllowedResourceTypesForOperation({
+                accessToken: nonPractAndAuditorAccessToken,
+                operation: 'history-instance',
+            }),
+        ).toEqual([]);
+    });
+});
