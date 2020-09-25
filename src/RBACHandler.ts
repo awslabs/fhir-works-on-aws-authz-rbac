@@ -10,7 +10,7 @@ import {
     TypeOperation,
     SystemOperation,
     BatchReadWriteRequest,
-    getAllowedResourceTypesForOperationRequest,
+    AllowedResourceTypesForOperationRequest,
 } from 'fhir-works-on-aws-interface';
 import { Rule, RBACConfig } from './RBACConfig';
 
@@ -27,7 +27,7 @@ export class RBACHandler implements Authorization {
         }
     }
 
-    isAuthorized(request: AuthorizationRequest): boolean {
+    async isAuthorized(request: AuthorizationRequest): Promise<boolean> {
         const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
@@ -46,7 +46,7 @@ export class RBACHandler implements Authorization {
         return authZResponses.every(Boolean);
     }
 
-    getAllowedResourceTypesForOperation(request: getAllowedResourceTypesForOperationRequest): string[] {
+    async getAllowedResourceTypesForOperation(request: AllowedResourceTypesForOperationRequest): Promise<string[]> {
         const { accessToken, operation } = request;
         const decoded = decode(accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
