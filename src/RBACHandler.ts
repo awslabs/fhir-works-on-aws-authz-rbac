@@ -10,6 +10,7 @@ import {
     TypeOperation,
     SystemOperation,
     BatchReadWriteRequest,
+    AllowedResourceTypesForOperationRequest,
     BASE_R4_RESOURCES,
     BASE_STU3_RESOURCES,
     FhirVersion,
@@ -39,7 +40,7 @@ export class RBACHandler implements Authorization {
         this.fhirVersion = fhirVersion;
     }
 
-    isAuthorized(request: AuthorizationRequest): boolean {
+    async isAuthorized(request: AuthorizationRequest): Promise<boolean> {
         const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
@@ -109,6 +110,20 @@ export class RBACHandler implements Authorization {
         });
         const authZResponses: boolean[] = await Promise.all(authZPromises);
         return authZResponses.every(Boolean);
+    }
+
+    async getAllowedResourceTypesForOperation(request: AllowedResourceTypesForOperationRequest): Promise<string[]> {
+        const { accessToken, operation } = request;
+        const decoded = decode(accessToken, { json: true }) || {};
+        const groups: string[] = decoded['cognito:groups'] || [];
+
+        return groups.flatMap(group => {
+            const groupRule = this.rules.groupRules[group];
+            if (groupRule !== undefined && groupRule.operations.includes(operation)) {
+                return groupRule.resources;
+            }
+            return [];
+        });
     }
 
     // eslint-disable-next-line class-methods-use-this
