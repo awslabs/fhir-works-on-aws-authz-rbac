@@ -129,7 +129,7 @@ export class RBACHandler implements Authorization {
     // eslint-disable-next-line class-methods-use-this
     getRequesterUserId(accessToken: string): string {
         const decoded = decode(accessToken, { json: true }) || {};
-        return decoded.username;
+        return decoded.sub;
     }
 
     private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string): boolean {

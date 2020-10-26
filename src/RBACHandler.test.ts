@@ -486,3 +486,18 @@ describe('isAllowedToAccessBulkDataJob', () => {
         expect(isAllowed).toBeFalsy();
     });
 });
+
+describe('getRequesterUserId', () => {
+    // Decoded Access Token
+    // {
+    //     "sub": "fakeSub1",
+    //     "username": "FakeUser",
+    //     "iat": 1516239022
+    // }
+    const accessToken =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlU3ViMSIsInVzZXJuYW1lIjoiRmFrZVVzZXIiLCJpYXQiOjE1MTYyMzkwMjJ9.QYnnbabXcPCa5fqr5Fymr2xuC0aJtkPHXxNqta0PT8U';
+    const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
+    test('getRequestUserId matches access token sub', () => {
+        expect(authZHandler.getRequesterUserId(accessToken)).toEqual('fakeSub1');
+    });
+});
