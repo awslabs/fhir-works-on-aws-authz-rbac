@@ -7,10 +7,13 @@ import {
     Authorization,
     AuthorizationRequest,
     AuthorizationBundleRequest,
+    AllowedResourceTypesForOperationRequest,
+    ReadResponseAuthorizedRequest,
+    WriteRequestAuthorizedRequest,
     TypeOperation,
     SystemOperation,
     BatchReadWriteRequest,
-    AllowedResourceTypesForOperationRequest,
+    UnauthorizedError,
 } from 'fhir-works-on-aws-interface';
 import { Rule, RBACConfig } from './RBACConfig';
 
@@ -27,29 +30,29 @@ export class RBACHandler implements Authorization {
         }
     }
 
-    async isAuthorized(request: AuthorizationRequest): Promise<boolean> {
-        const decoded = decode(request.accessToken, { json: true }) || {};
-        const groups: string[] = decoded['cognito:groups'] || [];
+    async isAuthorized(request: AuthorizationRequest) {
+        const decoded = decode(request.accessToken, { json: true }) ?? {};
+        const groups: string[] = decoded['cognito:groups'] ?? [];
 
-        return this.isAllowed(groups, request.operation, request.resourceType);
+        this.isAllowed(groups, request.operation, request.resourceType);
     }
 
-    async isBundleRequestAuthorized(request: AuthorizationBundleRequest): Promise<boolean> {
-        const decoded = decode(request.accessToken, { json: true }) || {};
+    async isBundleRequestAuthorized(request: AuthorizationBundleRequest) {
+        const decoded = decode(request.accessToken, { json: true }) ?? {};
 
-        const groups: string[] = decoded['cognito:groups'] || [];
+        const groups: string[] = decoded['cognito:groups'] ?? [];
 
-        const authZPromises: Promise<boolean>[] = request.requests.map(async (batch: BatchReadWriteRequest) => {
+        const authZPromises: Promise<void>[] = request.requests.map(async (batch: BatchReadWriteRequest) => {
             return this.isAllowed(groups, batch.operation, batch.resourceType);
         });
-        const authZResponses: boolean[] = await Promise.all(authZPromises);
-        return authZResponses.every(Boolean);
+
+        await Promise.all(authZPromises);
     }
 
     async getAllowedResourceTypesForOperation(request: AllowedResourceTypesForOperationRequest): Promise<string[]> {
         const { accessToken, operation } = request;
-        const decoded = decode(accessToken, { json: true }) || {};
-        const groups: string[] = decoded['cognito:groups'] || [];
+        const decoded = decode(accessToken, { json: true }) ?? {};
+        const groups: string[] = decoded['cognito:groups'] ?? [];
 
         return groups.flatMap(group => {
             const groupRule = this.rules.groupRules[group];
@@ -60,9 +63,18 @@ export class RBACHandler implements Authorization {
         });
     }
 
-    private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string): boolean {
+    // eslint-disable-next-line class-methods-use-this
+    async authorizeAndFilterReadResponse(request: ReadResponseAuthorizedRequest): Promise<any> {
+        // Currently no additional filtering/checking is needed for RBAC
+        return request.readResponse;
+    }
+
+    // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
+    async isWriteRequestAuthorized(_request: WriteRequestAuthorizedRequest) {}
+
+    private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string) {
         if (operation === 'read' && resourceType === 'metadata') {
-            return true; // capabilities statement
+            return; // capabilities statement
         }
         for (let index = 0; index < groups.length; index += 1) {
             const group: string = groups[index];
@@ -72,10 +84,10 @@ export class RBACHandler implements Authorization {
                     rule.operations.includes(operation) &&
                     ((resourceType && rule.resources.includes(resourceType)) || !resourceType)
                 ) {
-                    return true;
+                    return;
                 }
             }
         }
-        return false;
+        throw new UnauthorizedError('Unauthorized');
     }
 }
