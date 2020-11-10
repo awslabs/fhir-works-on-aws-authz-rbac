@@ -48,21 +48,24 @@ export class RBACHandler implements Authorization {
         const groups: string[] = decoded['cognito:groups'] ?? [];
 
         if (request.bulkDataAuth) {
-            return this.isBulkDataAccessAllowed(groups, request.bulkDataAuth);
+            this.isBulkDataAccessAllowed(groups, request.bulkDataAuth);
+            return;
         }
-        
+
         this.isAllowed(groups, request.operation, request.resourceType);
     }
 
     // eslint-disable-next-line class-methods-use-this
-    isAccessBulkDataJobAllowed(request: AccessBulkDataJobRequest): boolean {
-        return request.requesterUserId === request.jobOwnerId;
+    isAccessBulkDataJobAllowed(request: AccessBulkDataJobRequest): void {
+        if (request.requesterUserId !== request.jobOwnerId) {
+            throw new UnauthorizedError('Unauthorized');
+        }
     }
 
-    private isBulkDataAccessAllowed(groups: string[], bulkDataAuth: BulkDataAuth): boolean {
+    private isBulkDataAccessAllowed(groups: string[], bulkDataAuth: BulkDataAuth): void {
         const { operation, exportType } = bulkDataAuth;
         if (['get-status-export', 'cancel-export', 'get-status-import', 'cancel-import'].includes(operation)) {
-            return true;
+            return;
         }
         if (operation === 'initiate-export') {
             for (let index = 0; index < groups.length; index += 1) {
@@ -79,20 +82,24 @@ export class RBACHandler implements Authorization {
                                 (this.fhirVersion === '3.0.1' &&
                                     isEqual(rule.resources.sort(), BASE_STU3_RESOURCES.sort()))
                             ) {
-                                return true;
+                                return;
                             }
                         }
                         if (exportType === 'group' || exportType === 'patient') {
+                            let matchEveryResource = false;
                             if (this.fhirVersion === '4.0.1') {
-                                return R4_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
+                                matchEveryResource = R4_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
+                                    return rule.resources.includes(resource);
+                                });
+                            } else if (this.fhirVersion === '3.0.1') {
+                                matchEveryResource = STU3_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
                                     return rule.resources.includes(resource);
                                 });
                             }
-                            if (this.fhirVersion === '3.0.1') {
-                                return STU3_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
-                                    return rule.resources.includes(resource);
-                                });
+                            if (matchEveryResource) {
+                                return;
                             }
+                            throw new UnauthorizedError('Unauthorized');
                         }
                     }
                 }
@@ -101,10 +108,10 @@ export class RBACHandler implements Authorization {
             // TODO Handle `initiate-import` auth
         }
 
-        return false;
+        throw new UnauthorizedError('Unauthorized');
     }
 
-   async isBundleRequestAuthorized(request: AuthorizationBundleRequest) {
+    async isBundleRequestAuthorized(request: AuthorizationBundleRequest) {
         const decoded = decode(request.accessToken, { json: true }) ?? {};
         const groups: string[] = decoded['cognito:groups'] ?? [];
 
