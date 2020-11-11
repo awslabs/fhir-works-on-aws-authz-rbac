@@ -7,9 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - feat: Implement `fhir-works-on-aws-interface` v3.0.0
-  - This adds 3 new methods to this package
+  - This adds 4 new methods to this package
   - Throwing UnauthorizedError instead of a boolean
-
+ 
 ## [2.0.0] - 2020-09-25
 
 ### Added
