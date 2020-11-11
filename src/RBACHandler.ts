@@ -88,11 +88,11 @@ export class RBACHandler implements Authorization {
                         if (exportType === 'group' || exportType === 'patient') {
                             let matchEveryResource = false;
                             if (this.fhirVersion === '4.0.1') {
-                                matchEveryResource = R4_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
+                                matchEveryResource = R4_PATIENT_COMPARTMENT_RESOURCES.every((resource: string) => {
                                     return rule.resources.includes(resource);
                                 });
                             } else if (this.fhirVersion === '3.0.1') {
-                                matchEveryResource = STU3_PATIENT_COMPARTMENT_RESOURCES.every(resource => {
+                                matchEveryResource = STU3_PATIENT_COMPARTMENT_RESOURCES.every((resource: string) => {
                                     return rule.resources.includes(resource);
                                 });
                             }
