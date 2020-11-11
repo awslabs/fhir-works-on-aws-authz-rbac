@@ -239,15 +239,17 @@ describe('isAuthorized:Export', () => {
                     getTestPractitionerRBACRules(['read'], BASE_RESOURCES),
                     fhirVersion,
                 );
-                const results: boolean = await authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'read',
-                    bulkDataAuth: {
-                        operation: 'initiate-export',
-                        exportType: 'system',
-                    },
-                });
-                expect(results).toEqual(true);
+                expect(
+                    authZHandler.isAuthorized({
+                        accessToken: practitionerAccessToken,
+                        operation: 'read',
+                        bulkDataAuth: {
+                            operation: 'initiate-export',
+                            exportType: 'system',
+                        },
+                    }),
+                ).resolves.not.toThrow();
+                // expect(results).toEqual(true);
             });
 
             test(`TRUE:${fhirVersion}: GET system Export with permission to all resources, in mixed order`, async () => {
@@ -255,15 +257,16 @@ describe('isAuthorized:Export', () => {
                     getTestPractitionerRBACRules(['read'], shuffle(BASE_RESOURCES, { copy: true })),
                     fhirVersion,
                 );
-                const results: boolean = await authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'read',
-                    bulkDataAuth: {
-                        operation: 'initiate-export',
-                        exportType: 'system',
-                    },
-                });
-                expect(results).toEqual(true);
+                expect(
+                    authZHandler.isAuthorized({
+                        accessToken: practitionerAccessToken,
+                        operation: 'read',
+                        bulkDataAuth: {
+                            operation: 'initiate-export',
+                            exportType: 'system',
+                        },
+                    }),
+                ).resolves.not.toThrow();
             });
 
             test(`FALSE:${fhirVersion}: GET system Export without permission to all resources`, async () => {
@@ -271,15 +274,16 @@ describe('isAuthorized:Export', () => {
                     getTestPractitionerRBACRules(['read'], ['Patient', 'MedicationRequest']),
                     fhirVersion,
                 );
-                const results: boolean = await authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'read',
-                    bulkDataAuth: {
-                        operation: 'initiate-export',
-                        exportType: 'system',
-                    },
-                });
-                expect(results).toEqual(false);
+                expect(
+                    authZHandler.isAuthorized({
+                        accessToken: practitionerAccessToken,
+                        operation: 'read',
+                        bulkDataAuth: {
+                            operation: 'initiate-export',
+                            exportType: 'system',
+                        },
+                    }),
+                ).rejects.toThrow('Unauthorized');
             });
 
             test(`FALSE:${fhirVersion}: GET system Export with permission to CREATE all resources but not READ them`, async () => {
@@ -287,15 +291,16 @@ describe('isAuthorized:Export', () => {
                     getTestPractitionerRBACRules(['create'], BASE_RESOURCES),
                     fhirVersion,
                 );
-                const results: boolean = await authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'read',
-                    bulkDataAuth: {
-                        operation: 'initiate-export',
-                        exportType: 'system',
-                    },
-                });
-                expect(results).toEqual(false);
+                expect(
+                    authZHandler.isAuthorized({
+                        accessToken: practitionerAccessToken,
+                        operation: 'read',
+                        bulkDataAuth: {
+                            operation: 'initiate-export',
+                            exportType: 'system',
+                        },
+                    }),
+                ).rejects.toThrow('Unauthorized');
             });
 
             test(`TRUE:${fhirVersion}: GET patient Export with permission to all resources in Patient compartment`, async () => {
@@ -303,15 +308,16 @@ describe('isAuthorized:Export', () => {
                     getTestPractitionerRBACRules(['read'], PATIENT_COMPARTMENT),
                     fhirVersion,
                 );
-                const results: boolean = await authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'read',
-                    bulkDataAuth: {
-                        operation: 'initiate-export',
-                        exportType: 'patient',
-                    },
-                });
-                expect(results).toEqual(true);
+                expect(
+                    authZHandler.isAuthorized({
+                        accessToken: practitionerAccessToken,
+                        operation: 'read',
+                        bulkDataAuth: {
+                            operation: 'initiate-export',
+                            exportType: 'patient',
+                        },
+                    }),
+                ).resolves.not.toThrow();
             });
 
             test(`FALSE:${fhirVersion}: GET patient Export without permission to all resources in Patient compartment`, async () => {
@@ -319,15 +325,16 @@ describe('isAuthorized:Export', () => {
                     getTestPractitionerRBACRules(['read'], ['Patient', 'Account']),
                     fhirVersion,
                 );
-                const results: boolean = await authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'read',
-                    bulkDataAuth: {
-                        operation: 'initiate-export',
-                        exportType: 'patient',
-                    },
-                });
-                expect(results).toEqual(false);
+                expect(
+                    authZHandler.isAuthorized({
+                        accessToken: practitionerAccessToken,
+                        operation: 'read',
+                        bulkDataAuth: {
+                            operation: 'initiate-export',
+                            exportType: 'patient',
+                        },
+                    }),
+                ).rejects.toThrow('Unauthorized');
             });
 
             test(`TRUE:${fhirVersion}: GET group Export with permission to all resources in Patient compartment`, async () => {
@@ -335,15 +342,16 @@ describe('isAuthorized:Export', () => {
                     getTestPractitionerRBACRules(['read'], PATIENT_COMPARTMENT),
                     fhirVersion,
                 );
-                const results: boolean = await authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'read',
-                    bulkDataAuth: {
-                        operation: 'initiate-export',
-                        exportType: 'group',
-                    },
-                });
-                expect(results).toEqual(true);
+                expect(
+                    authZHandler.isAuthorized({
+                        accessToken: practitionerAccessToken,
+                        operation: 'read',
+                        bulkDataAuth: {
+                            operation: 'initiate-export',
+                            exportType: 'group',
+                        },
+                    }),
+                ).resolves.not.toThrow();
             });
 
             test(`FALSE:${fhirVersion}: GET group Export without permission to all resources in Patient compartment`, async () => {
@@ -351,15 +359,16 @@ describe('isAuthorized:Export', () => {
                     getTestPractitionerRBACRules(['read'], ['Patient', 'Account']),
                     fhirVersion,
                 );
-                const results: boolean = await authZHandler.isAuthorized({
-                    accessToken: practitionerAccessToken,
-                    operation: 'read',
-                    bulkDataAuth: {
-                        operation: 'initiate-export',
-                        exportType: 'group',
-                    },
-                });
-                expect(results).toEqual(false);
+                expect(
+                    authZHandler.isAuthorized({
+                        accessToken: practitionerAccessToken,
+                        operation: 'read',
+                        bulkDataAuth: {
+                            operation: 'initiate-export',
+                            exportType: 'group',
+                        },
+                    }),
+                ).rejects.toThrow('Unauthorized');
             });
         });
 
@@ -368,15 +377,16 @@ describe('isAuthorized:Export', () => {
                 getTestPractitionerRBACRules(['read'], BASE_RESOURCES),
                 fhirVersion,
             );
-            const results: boolean = await authZHandler.isAuthorized({
-                accessToken: practitionerAccessToken,
-                operation: 'read',
-                bulkDataAuth: {
-                    operation: 'get-status-export',
-                    exportType: 'system',
-                },
-            });
-            expect(results).toEqual(true);
+            expect(
+                authZHandler.isAuthorized({
+                    accessToken: practitionerAccessToken,
+                    operation: 'read',
+                    bulkDataAuth: {
+                        operation: 'get-status-export',
+                        exportType: 'system',
+                    },
+                }),
+            ).resolves.not.toThrow();
         });
 
         test(`TRUE:${fhirVersion}: Cancel export job`, async () => {
@@ -384,15 +394,16 @@ describe('isAuthorized:Export', () => {
                 getTestPractitionerRBACRules(['delete'], BASE_RESOURCES),
                 fhirVersion,
             );
-            const results: boolean = await authZHandler.isAuthorized({
-                accessToken: practitionerAccessToken,
-                operation: 'delete',
-                bulkDataAuth: {
-                    operation: 'cancel-export',
-                    exportType: 'system',
-                },
-            });
-            expect(results).toEqual(true);
+            expect(
+                authZHandler.isAuthorized({
+                    accessToken: practitionerAccessToken,
+                    operation: 'delete',
+                    bulkDataAuth: {
+                        operation: 'cancel-export',
+                        exportType: 'system',
+                    },
+                }),
+            ).resolves.not.toThrow();
         });
     });
 });
@@ -445,7 +456,7 @@ describe('isBundleRequestAuthorized', () => {
     });
 });
 describe('authorizeAndFilterReadResponse', () => {
-    const authZHandler: RBACHandler = new RBACHandler(RBACRules);
+    const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
 
     test('authorize final read response; expected: pass', async () => {
         const expected = { id: 'id', resource: { active: true }, resourceType: 'Patient' };
@@ -519,8 +530,9 @@ describe('isAllowedToAccessBulkDataJob', () => {
             jobOwnerId: 'userId-1',
             requesterUserId: 'userId-1',
         };
-        const isAllowed = authZHandler.isAccessBulkDataJobAllowed(accessBulkDataJobRequest);
-        expect(isAllowed).toBeTruthy();
+        expect(() => {
+            authZHandler.isAccessBulkDataJobAllowed(accessBulkDataJobRequest);
+        }).not.toThrow();
     });
 
     test('FALSE: JobOwnerId and requesterUserId does not match', () => {
@@ -528,8 +540,9 @@ describe('isAllowedToAccessBulkDataJob', () => {
             jobOwnerId: 'userId-1',
             requesterUserId: 'userId-2',
         };
-        const isAllowed = authZHandler.isAccessBulkDataJobAllowed(accessBulkDataJobRequest);
-        expect(isAllowed).toBeFalsy();
+        expect(() => {
+            authZHandler.isAccessBulkDataJobAllowed(accessBulkDataJobRequest);
+        }).toThrow('Unauthorized');
     });
 });
 
