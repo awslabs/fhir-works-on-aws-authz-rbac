@@ -1,6 +1,6 @@
 {
   "name": "fhir-works-on-aws-authz-rbac",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "FHIR Works on AWS role base access control",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -28,13 +28,16 @@
     "prepublish": "tsc"
   },
   "dependencies": {
-    "fhir-works-on-aws-interface": "^2.0.0",
-    "jsonwebtoken": "^8.5.1"
+    "fhir-works-on-aws-interface": "^3.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.20"
   },
   "devDependencies": {
     "@types/jest": "^25.1.1",
     "@types/jsonwebtoken": "^8.5.0",
+    "@types/lodash": "^4.14.161",
     "@types/node": "^12",
+    "@types/shuffle-array": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
     "eslint": "^6.8.0",
@@ -45,6 +48,7 @@
     "jest": "^25.1.0",
     "jest-mock-extended": "^1.0.8",
     "prettier": "^1.19.1",
+    "shuffle-array": "^1.0.1",
     "ts-jest": "^25.1.0",
     "typescript": "^3.7.5"
   },
