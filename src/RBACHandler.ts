@@ -5,10 +5,10 @@
 import { decode } from 'jsonwebtoken';
 import {
     Authorization,
-    AuthorizationRequest,
     AuthorizationBundleRequest,
     AllowedResourceTypesForOperationRequest,
     ReadResponseAuthorizedRequest,
+    VerifyAccessTokenRequest,
     WriteRequestAuthorizedRequest,
     TypeOperation,
     SystemOperation,
@@ -21,6 +21,7 @@ import {
     STU3_PATIENT_COMPARTMENT_RESOURCES,
     BulkDataAuth,
     AccessBulkDataJobRequest,
+    KeyValueMap,
 } from 'fhir-works-on-aws-interface';
 
 import isEqual from 'lodash/isEqual';
@@ -43,23 +44,75 @@ export class RBACHandler implements Authorization {
         this.fhirVersion = fhirVersion;
     }
 
-    async isAuthorized(request: AuthorizationRequest) {
+    async verifyAccessToken(request: VerifyAccessTokenRequest): Promise<KeyValueMap> {
         const decoded = decode(request.accessToken, { json: true }) ?? {};
         const groups: string[] = decoded['cognito:groups'] ?? [];
 
         if (request.bulkDataAuth) {
             this.isBulkDataAccessAllowed(groups, request.bulkDataAuth);
-            return;
+            return decoded;
         }
 
         this.isAllowed(groups, request.operation, request.resourceType);
+        return decoded;
     }
 
     // eslint-disable-next-line class-methods-use-this
-    isAccessBulkDataJobAllowed(request: AccessBulkDataJobRequest): void {
-        if (request.requesterUserId !== request.jobOwnerId) {
+    async isAccessBulkDataJobAllowed(request: AccessBulkDataJobRequest) {
+        if (request.userIdentity.sub !== request.jobOwnerId) {
             throw new UnauthorizedError('Unauthorized');
         }
+    }
+
+    async isBundleRequestAuthorized(request: AuthorizationBundleRequest) {
+        const groups: string[] = request.userIdentity['cognito:groups'] ?? [];
+
+        const authZPromises: Promise<void>[] = request.requests.map(async (batch: BatchReadWriteRequest) => {
+            return this.isAllowed(groups, batch.operation, batch.resourceType);
+        });
+
+        await Promise.all(authZPromises);
+    }
+
+    async getAllowedResourceTypesForOperation(request: AllowedResourceTypesForOperationRequest): Promise<string[]> {
+        const { userIdentity, operation } = request;
+        const groups: string[] = userIdentity['cognito:groups'] ?? [];
+
+        return groups.flatMap(group => {
+            const groupRule = this.rules.groupRules[group];
+            if (groupRule !== undefined && groupRule.operations.includes(operation)) {
+                return groupRule.resources;
+            }
+            return [];
+        });
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    async authorizeAndFilterReadResponse(request: ReadResponseAuthorizedRequest): Promise<any> {
+        // Currently no additional filtering/checking is needed for RBAC
+        return request.readResponse;
+    }
+
+    // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
+    async isWriteRequestAuthorized(_request: WriteRequestAuthorizedRequest) {}
+
+    private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string) {
+        if (operation === 'read' && resourceType === 'metadata') {
+            return; // capabilities statement
+        }
+        for (let index = 0; index < groups.length; index += 1) {
+            const group: string = groups[index];
+            if (this.rules.groupRules[group]) {
+                const rule: Rule = this.rules.groupRules[group];
+                if (
+                    rule.operations.includes(operation) &&
+                    ((resourceType && rule.resources.includes(resourceType)) || !resourceType)
+                ) {
+                    return;
+                }
+            }
+        }
+        throw new UnauthorizedError('Unauthorized');
     }
 
     private isBulkDataAccessAllowed(groups: string[], bulkDataAuth: BulkDataAuth): void {
@@ -108,65 +161,6 @@ export class RBACHandler implements Authorization {
             // TODO Handle `initiate-import` auth
         }
 
-        throw new UnauthorizedError('Unauthorized');
-    }
-
-    async isBundleRequestAuthorized(request: AuthorizationBundleRequest) {
-        const decoded = decode(request.accessToken, { json: true }) ?? {};
-        const groups: string[] = decoded['cognito:groups'] ?? [];
-
-        const authZPromises: Promise<void>[] = request.requests.map(async (batch: BatchReadWriteRequest) => {
-            return this.isAllowed(groups, batch.operation, batch.resourceType);
-        });
-
-        await Promise.all(authZPromises);
-    }
-
-    async getAllowedResourceTypesForOperation(request: AllowedResourceTypesForOperationRequest): Promise<string[]> {
-        const { accessToken, operation } = request;
-        const decoded = decode(accessToken, { json: true }) ?? {};
-        const groups: string[] = decoded['cognito:groups'] ?? [];
-
-        return groups.flatMap(group => {
-            const groupRule = this.rules.groupRules[group];
-            if (groupRule !== undefined && groupRule.operations.includes(operation)) {
-                return groupRule.resources;
-            }
-            return [];
-        });
-    }
-
-    // eslint-disable-next-line class-methods-use-this
-    getRequesterUserId(accessToken: string): string {
-        const decoded = decode(accessToken, { json: true }) || {};
-        return decoded.sub;
-    }
-
-    // eslint-disable-next-line class-methods-use-this
-    async authorizeAndFilterReadResponse(request: ReadResponseAuthorizedRequest): Promise<any> {
-        // Currently no additional filtering/checking is needed for RBAC
-        return request.readResponse;
-    }
-
-    // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
-    async isWriteRequestAuthorized(_request: WriteRequestAuthorizedRequest) {}
-
-    private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string) {
-        if (operation === 'read' && resourceType === 'metadata') {
-            return; // capabilities statement
-        }
-        for (let index = 0; index < groups.length; index += 1) {
-            const group: string = groups[index];
-            if (this.rules.groupRules[group]) {
-                const rule: Rule = this.rules.groupRules[group];
-                if (
-                    rule.operations.includes(operation) &&
-                    ((resourceType && rule.resources.includes(resourceType)) || !resourceType)
-                ) {
-                    return;
-                }
-            }
-        }
         throw new UnauthorizedError('Unauthorized');
     }
 }
