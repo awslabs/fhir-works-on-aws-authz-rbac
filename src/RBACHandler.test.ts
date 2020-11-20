@@ -63,63 +63,81 @@ const nonPractAndAuditorAccessToken: string =
 const practitionerAccessToken: string =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwiY29nbml0bzpncm91cHMiOlsicHJhY3RpdGlvbmVyIl0sIm5hbWUiOiJub3QgcmVhbCIsImlhdCI6MTUxNjIzOTAyMn0.bhZZ2O8Vph5aiPfs1n34Enw0075Tt4Cnk2FL2C3mHaQ';
 
+const noGroupsDecoded = {
+    sub: 'fake',
+    name: 'not real',
+    iat: 1516239022,
+};
+const nonPractitionerDecoded = {
+    sub: 'fake',
+    'cognito:groups': ['non-practitioner', 'auditor'],
+    name: 'not real',
+    iat: 1516239022,
+};
+const practitionerDecoded = {
+    sub: 'fake',
+    'cognito:groups': ['practitioner'],
+    name: 'not real',
+    iat: 1516239022,
+};
+
 beforeEach(() => {
     expect.assertions(1);
 });
-describe('isAuthorized', () => {
+describe('verifyAccessToken', () => {
     const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
 
     test('read direct patient with practitioner role; expected: pass', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: practitionerAccessToken,
                 resourceType: 'Patient',
                 operation: 'read',
                 id: '1324',
             }),
-        ).resolves.not.toThrow();
+        ).resolves.toEqual(practitionerDecoded);
     });
     test('create direct patient with practitioner role; expected: pass', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: practitionerAccessToken,
                 resourceType: 'Patient',
                 operation: 'create',
             }),
-        ).resolves.not.toThrow();
+        ).resolves.toEqual(practitionerDecoded);
     });
     test('transaction with practitioner role; expected: pass', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: practitionerAccessToken,
                 operation: 'transaction',
             }),
-        ).resolves.not.toThrow();
+        ).resolves.toEqual(practitionerDecoded);
     });
     test('update direct patient with practitioner role; expected: pass', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: practitionerAccessToken,
                 resourceType: 'Patient',
                 operation: 'update',
                 id: '1324',
             }),
-        ).resolves.not.toThrow();
+        ).resolves.toEqual(practitionerDecoded);
     });
     test('DELETE patient with practitioner role; expected: pass', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: practitionerAccessToken,
                 resourceType: 'Patient',
                 operation: 'delete',
                 id: '1324',
             }),
-        ).resolves.not.toThrow();
+        ).resolves.toEqual(practitionerDecoded);
     });
 
     test('patch patient with practitioner role; expected: UnauthorizedError', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: practitionerAccessToken,
                 resourceType: 'Patient',
                 operation: 'patch',
@@ -129,16 +147,16 @@ describe('isAuthorized', () => {
     });
     test('GET capability statement with no groups; expected: pass', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: 'notReal',
                 operation: 'read',
                 resourceType: 'metadata',
             }),
-        ).resolves.not.toThrow();
+        ).resolves.toEqual({});
     });
     test('GET Patient with no groups; expected: UnauthorizedError', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: noGroupsAccessToken,
                 resourceType: 'Patient',
                 operation: 'read',
@@ -148,7 +166,7 @@ describe('isAuthorized', () => {
     });
     test('POST Patient with non-practitioner/auditor; expected: UnauthorizedError', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: nonPractAndAuditorAccessToken,
                 resourceType: 'Patient',
                 operation: 'create',
@@ -157,26 +175,26 @@ describe('isAuthorized', () => {
     });
     test('GET Patient with non-practitioner/auditor; expected: pass', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: nonPractAndAuditorAccessToken,
                 resourceType: 'Patient',
                 operation: 'read',
                 id: '1324',
             }),
-        ).resolves.not.toThrow();
+        ).resolves.toEqual(nonPractitionerDecoded);
     });
     test('search patients with non-practitioner/auditor; expected: pass', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: nonPractAndAuditorAccessToken,
                 resourceType: 'Patient',
                 operation: 'search-type',
             }),
-        ).resolves.not.toThrow();
+        ).resolves.toEqual(nonPractitionerDecoded);
     });
     test('search globally with non-practitioner/auditor; expected: UnauthorizedError', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: nonPractAndAuditorAccessToken,
                 operation: 'search-system',
             }),
@@ -184,18 +202,18 @@ describe('isAuthorized', () => {
     });
     test('read specific Patient history with non-practitioner/auditor role; expected: pass', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: nonPractAndAuditorAccessToken,
                 resourceType: 'Patient',
                 operation: 'vread',
                 id: '1324',
                 vid: '1324',
             }),
-        ).resolves.not.toThrow();
+        ).resolves.toEqual(nonPractitionerDecoded);
     });
     test('read Patients history; non-practitioner/auditor; expected: UnauthorizedError', async () => {
         await expect(
-            authZHandler.isAuthorized({
+            authZHandler.verifyAccessToken({
                 accessToken: nonPractAndAuditorAccessToken,
                 resourceType: 'Patient',
                 operation: 'history-type',
@@ -217,7 +235,7 @@ describe('isAuthorized', () => {
     });
 });
 
-describe('isAuthorized:Export', () => {
+describe('verifyAccessToken:Export', () => {
     const getTestPractitionerRBACRules = (operations: TypeOperation[], resources: any) => ({
         version: 1.0,
         groupRules: {
@@ -240,7 +258,7 @@ describe('isAuthorized:Export', () => {
                     fhirVersion,
                 );
                 expect(
-                    authZHandler.isAuthorized({
+                    authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
                         bulkDataAuth: {
@@ -248,8 +266,7 @@ describe('isAuthorized:Export', () => {
                             exportType: 'system',
                         },
                     }),
-                ).resolves.not.toThrow();
-                // expect(results).toEqual(true);
+                ).resolves.toEqual(practitionerDecoded);
             });
 
             test(`TRUE:${fhirVersion}: GET system Export with permission to all resources, in mixed order`, async () => {
@@ -258,7 +275,7 @@ describe('isAuthorized:Export', () => {
                     fhirVersion,
                 );
                 expect(
-                    authZHandler.isAuthorized({
+                    authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
                         bulkDataAuth: {
@@ -266,7 +283,7 @@ describe('isAuthorized:Export', () => {
                             exportType: 'system',
                         },
                     }),
-                ).resolves.not.toThrow();
+                ).resolves.toEqual(practitionerDecoded);
             });
 
             test(`FALSE:${fhirVersion}: GET system Export without permission to all resources`, async () => {
@@ -275,7 +292,7 @@ describe('isAuthorized:Export', () => {
                     fhirVersion,
                 );
                 expect(
-                    authZHandler.isAuthorized({
+                    authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
                         bulkDataAuth: {
@@ -283,7 +300,7 @@ describe('isAuthorized:Export', () => {
                             exportType: 'system',
                         },
                     }),
-                ).rejects.toThrow('Unauthorized');
+                ).rejects.toThrowError(UnauthorizedError);
             });
 
             test(`FALSE:${fhirVersion}: GET system Export with permission to CREATE all resources but not READ them`, async () => {
@@ -292,7 +309,7 @@ describe('isAuthorized:Export', () => {
                     fhirVersion,
                 );
                 expect(
-                    authZHandler.isAuthorized({
+                    authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
                         bulkDataAuth: {
@@ -300,7 +317,7 @@ describe('isAuthorized:Export', () => {
                             exportType: 'system',
                         },
                     }),
-                ).rejects.toThrow('Unauthorized');
+                ).rejects.toThrowError(UnauthorizedError);
             });
 
             test(`TRUE:${fhirVersion}: GET patient Export with permission to all resources in Patient compartment`, async () => {
@@ -309,7 +326,7 @@ describe('isAuthorized:Export', () => {
                     fhirVersion,
                 );
                 expect(
-                    authZHandler.isAuthorized({
+                    authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
                         bulkDataAuth: {
@@ -317,7 +334,7 @@ describe('isAuthorized:Export', () => {
                             exportType: 'patient',
                         },
                     }),
-                ).resolves.not.toThrow();
+                ).resolves.toEqual(practitionerDecoded);
             });
 
             test(`FALSE:${fhirVersion}: GET patient Export without permission to all resources in Patient compartment`, async () => {
@@ -326,7 +343,7 @@ describe('isAuthorized:Export', () => {
                     fhirVersion,
                 );
                 expect(
-                    authZHandler.isAuthorized({
+                    authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
                         bulkDataAuth: {
@@ -334,7 +351,7 @@ describe('isAuthorized:Export', () => {
                             exportType: 'patient',
                         },
                     }),
-                ).rejects.toThrow('Unauthorized');
+                ).rejects.toThrowError(UnauthorizedError);
             });
 
             test(`TRUE:${fhirVersion}: GET group Export with permission to all resources in Patient compartment`, async () => {
@@ -343,7 +360,7 @@ describe('isAuthorized:Export', () => {
                     fhirVersion,
                 );
                 expect(
-                    authZHandler.isAuthorized({
+                    authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
                         bulkDataAuth: {
@@ -351,7 +368,7 @@ describe('isAuthorized:Export', () => {
                             exportType: 'group',
                         },
                     }),
-                ).resolves.not.toThrow();
+                ).resolves.toEqual(practitionerDecoded);
             });
 
             test(`FALSE:${fhirVersion}: GET group Export without permission to all resources in Patient compartment`, async () => {
@@ -360,7 +377,7 @@ describe('isAuthorized:Export', () => {
                     fhirVersion,
                 );
                 expect(
-                    authZHandler.isAuthorized({
+                    authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
                         bulkDataAuth: {
@@ -368,7 +385,7 @@ describe('isAuthorized:Export', () => {
                             exportType: 'group',
                         },
                     }),
-                ).rejects.toThrow('Unauthorized');
+                ).rejects.toThrowError(UnauthorizedError);
             });
         });
 
@@ -378,7 +395,7 @@ describe('isAuthorized:Export', () => {
                 fhirVersion,
             );
             expect(
-                authZHandler.isAuthorized({
+                authZHandler.verifyAccessToken({
                     accessToken: practitionerAccessToken,
                     operation: 'read',
                     bulkDataAuth: {
@@ -386,7 +403,7 @@ describe('isAuthorized:Export', () => {
                         exportType: 'system',
                     },
                 }),
-            ).resolves.not.toThrow();
+            ).resolves.toEqual(practitionerDecoded);
         });
 
         test(`TRUE:${fhirVersion}: Cancel export job`, async () => {
@@ -395,7 +412,7 @@ describe('isAuthorized:Export', () => {
                 fhirVersion,
             );
             expect(
-                authZHandler.isAuthorized({
+                authZHandler.verifyAccessToken({
                     accessToken: practitionerAccessToken,
                     operation: 'delete',
                     bulkDataAuth: {
@@ -403,7 +420,7 @@ describe('isAuthorized:Export', () => {
                         exportType: 'system',
                     },
                 }),
-            ).resolves.not.toThrow();
+            ).resolves.toEqual(practitionerDecoded);
         });
     });
 });
@@ -414,7 +431,7 @@ describe('isBundleRequestAuthorized', () => {
     test('create direct patient in bundle with practitioner role; expected: pass', async () => {
         await expect(
             authZHandler.isBundleRequestAuthorized({
-                accessToken: practitionerAccessToken,
+                userIdentity: practitionerDecoded,
                 requests: [{ operation: 'create', id: 'id', resource: { active: true }, resourceType: 'Patient' }],
             }),
         ).resolves.not.toThrow();
@@ -423,7 +440,7 @@ describe('isBundleRequestAuthorized', () => {
     test('create & read direct patient in bundle with practitioner role; expected: pass', async () => {
         await expect(
             authZHandler.isBundleRequestAuthorized({
-                accessToken: practitionerAccessToken,
+                userIdentity: practitionerDecoded,
                 requests: [
                     { operation: 'create', id: 'id', resource: { active: true }, resourceType: 'Patient' },
                     { operation: 'read', id: 'id', resource: 'Patient/id', resourceType: 'Patient' },
@@ -435,7 +452,7 @@ describe('isBundleRequestAuthorized', () => {
     test('create & read direct patient in bundle with nonPractAndAuditor; expected: UnauthorizedError', async () => {
         await expect(
             authZHandler.isBundleRequestAuthorized({
-                accessToken: nonPractAndAuditorAccessToken,
+                userIdentity: nonPractitionerDecoded,
                 requests: [
                     { operation: 'read', id: 'id', resource: 'Patient/id', resourceType: 'Patient' },
                     { operation: 'create', id: 'id', resource: { active: true }, resourceType: 'Patient' },
@@ -446,7 +463,7 @@ describe('isBundleRequestAuthorized', () => {
     test('create 2 patients in a bundle with nonPractAndAuditor role; expected: UnauthorizedError', async () => {
         await expect(
             authZHandler.isBundleRequestAuthorized({
-                accessToken: nonPractAndAuditorAccessToken,
+                userIdentity: nonPractitionerDecoded,
                 requests: [
                     { operation: 'create', id: 'id1', resource: 'Patient/id', resourceType: 'Patient' },
                     { operation: 'create', id: 'id2', resource: { active: true }, resourceType: 'Patient' },
@@ -462,7 +479,7 @@ describe('authorizeAndFilterReadResponse', () => {
         const expected = { id: 'id', resource: { active: true }, resourceType: 'Patient' };
         await expect(
             authZHandler.authorizeAndFilterReadResponse({
-                accessToken: practitionerAccessToken,
+                userIdentity: practitionerDecoded,
                 operation: 'read',
                 readResponse: expected,
             }),
@@ -472,7 +489,7 @@ describe('authorizeAndFilterReadResponse', () => {
         const expected = { id: 'id214', resource: { active: true }, resourceType: 'Patient' };
         await expect(
             authZHandler.authorizeAndFilterReadResponse({
-                accessToken: practitionerAccessToken,
+                userIdentity: practitionerDecoded,
                 operation: 'search-type',
                 readResponse: expected,
             }),
@@ -485,7 +502,7 @@ describe('getAllowedResourceTypesForOperation', () => {
         const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
         await expect(
             authZHandler.getAllowedResourceTypesForOperation({
-                accessToken: practitionerAccessToken,
+                userIdentity: practitionerDecoded,
                 operation: 'search-type',
             }),
         ).resolves.toEqual([...financialResources, 'Patient']);
@@ -495,7 +512,7 @@ describe('getAllowedResourceTypesForOperation', () => {
         const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
         await expect(
             authZHandler.getAllowedResourceTypesForOperation({
-                accessToken: noGroupsAccessToken,
+                userIdentity: noGroupsDecoded,
                 operation: 'search-type',
             }),
         ).resolves.toEqual([]);
@@ -505,7 +522,7 @@ describe('getAllowedResourceTypesForOperation', () => {
         const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
         await expect(
             authZHandler.getAllowedResourceTypesForOperation({
-                accessToken: nonPractAndAuditorAccessToken,
+                userIdentity: nonPractitionerDecoded,
                 operation: 'search-type',
             }),
         ).resolves.toEqual([...financialResources, 'Patient']);
@@ -515,7 +532,7 @@ describe('getAllowedResourceTypesForOperation', () => {
         const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
         await expect(
             authZHandler.getAllowedResourceTypesForOperation({
-                accessToken: nonPractAndAuditorAccessToken,
+                userIdentity: nonPractitionerDecoded,
                 operation: 'history-instance',
             }),
         ).resolves.toEqual([]);
@@ -525,38 +542,21 @@ describe('getAllowedResourceTypesForOperation', () => {
 describe('isAllowedToAccessBulkDataJob', () => {
     const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
 
-    test('TRUE: JobOwnerId and requesterUserId matches', () => {
+    test('TRUE: JobOwnerId and requesterUserId matches', async () => {
         const accessBulkDataJobRequest: AccessBulkDataJobRequest = {
             jobOwnerId: 'userId-1',
-            requesterUserId: 'userId-1',
+            userIdentity: { sub: 'userId-1' },
         };
-        expect(() => {
-            authZHandler.isAccessBulkDataJobAllowed(accessBulkDataJobRequest);
-        }).not.toThrow();
+        await expect(authZHandler.isAccessBulkDataJobAllowed(accessBulkDataJobRequest)).resolves.not.toThrow();
     });
 
-    test('FALSE: JobOwnerId and requesterUserId does not match', () => {
+    test('FALSE: JobOwnerId and requesterUserId does not match', async () => {
         const accessBulkDataJobRequest: AccessBulkDataJobRequest = {
             jobOwnerId: 'userId-1',
-            requesterUserId: 'userId-2',
+            userIdentity: { sub: 'userId-2' },
         };
-        expect(() => {
-            authZHandler.isAccessBulkDataJobAllowed(accessBulkDataJobRequest);
-        }).toThrow('Unauthorized');
-    });
-});
-
-describe('getRequesterUserId', () => {
-    // Decoded Access Token
-    // {
-    //     "sub": "fakeSub1",
-    //     "username": "FakeUser",
-    //     "iat": 1516239022
-    // }
-    const accessToken =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlU3ViMSIsInVzZXJuYW1lIjoiRmFrZVVzZXIiLCJpYXQiOjE1MTYyMzkwMjJ9.QYnnbabXcPCa5fqr5Fymr2xuC0aJtkPHXxNqta0PT8U';
-    const authZHandler: RBACHandler = new RBACHandler(RBACRules, '4.0.1');
-    test('getRequestUserId matches access token sub', () => {
-        expect(authZHandler.getRequesterUserId(accessToken)).toEqual('fakeSub1');
+        await expect(authZHandler.isAccessBulkDataJobAllowed(accessBulkDataJobRequest)).rejects.toThrowError(
+            UnauthorizedError,
+        );
     });
 });
