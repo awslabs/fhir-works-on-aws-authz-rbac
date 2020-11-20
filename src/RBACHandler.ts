@@ -58,13 +58,13 @@ export class RBACHandler implements Authorization {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    async isAccessBulkDataJobAllowed(request: AccessBulkDataJobRequest) {
+    async isAccessBulkDataJobAllowed(request: AccessBulkDataJobRequest): Promise<void> {
         if (request.userIdentity.sub !== request.jobOwnerId) {
             throw new UnauthorizedError('Unauthorized');
         }
     }
 
-    async isBundleRequestAuthorized(request: AuthorizationBundleRequest) {
+    async isBundleRequestAuthorized(request: AuthorizationBundleRequest): Promise<void> {
         const groups: string[] = request.userIdentity['cognito:groups'] ?? [];
 
         const authZPromises: Promise<void>[] = request.requests.map(async (batch: BatchReadWriteRequest) => {
@@ -94,9 +94,9 @@ export class RBACHandler implements Authorization {
     }
 
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
-    async isWriteRequestAuthorized(_request: WriteRequestAuthorizedRequest) {}
+    async isWriteRequestAuthorized(_request: WriteRequestAuthorizedRequest): Promise<void> {}
 
-    private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string) {
+    private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string): void {
         if (operation === 'read' && resourceType === 'metadata') {
             return; // capabilities statement
         }
