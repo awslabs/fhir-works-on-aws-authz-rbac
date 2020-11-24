@@ -97,9 +97,6 @@ export class RBACHandler implements Authorization {
     async isWriteRequestAuthorized(_request: WriteRequestAuthorizedRequest): Promise<void> {}
 
     private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string): void {
-        if (operation === 'read' && resourceType === 'metadata') {
-            return; // capabilities statement
-        }
         for (let index = 0; index < groups.length; index += 1) {
             const group: string = groups[index];
             if (this.rules.groupRules[group]) {
