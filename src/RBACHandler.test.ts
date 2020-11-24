@@ -145,15 +145,6 @@ describe('verifyAccessToken', () => {
             }),
         ).rejects.toThrowError(UnauthorizedError);
     });
-    test('GET capability statement with no groups; expected: pass', async () => {
-        await expect(
-            authZHandler.verifyAccessToken({
-                accessToken: 'notReal',
-                operation: 'read',
-                resourceType: 'metadata',
-            }),
-        ).resolves.toEqual({});
-    });
     test('GET Patient with no groups; expected: UnauthorizedError', async () => {
         await expect(
             authZHandler.verifyAccessToken({
