@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.1] - 2020-12-07
+
+### Added
+
+- chore: We no longer require Auth for metadata route, because router does not Authorize metadata route
+
 ## [4.0.0] - 2020-11-20
 
 ### Added
