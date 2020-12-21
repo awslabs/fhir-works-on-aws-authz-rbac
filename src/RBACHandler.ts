@@ -22,6 +22,8 @@ import {
     BulkDataAuth,
     AccessBulkDataJobRequest,
     KeyValueMap,
+    GetSearchFilterBasedOnIdentityRequest,
+    SearchFilter,
 } from 'fhir-works-on-aws-interface';
 
 import isEqual from 'lodash/isEqual';
@@ -159,5 +161,10 @@ export class RBACHandler implements Authorization {
         }
 
         throw new UnauthorizedError('Unauthorized');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
+    async getSearchFilterBasedOnIdentity(request: GetSearchFilterBasedOnIdentityRequest): Promise<SearchFilter[]> {
+        return [];
     }
 }
