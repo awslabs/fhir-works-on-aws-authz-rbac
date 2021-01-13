@@ -1,6 +1,13 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [4.1.0](https://github.com/awslabs/fhir-works-on-aws-authz-rbac/compare/v4.0.1...v4.1.0) (2021-01-13)
+
+
+### Features
+
+* Implement 'getSearchFilterBasedOnIdentity' ([#20](https://github.com/awslabs/fhir-works-on-aws-authz-rbac/issues/20)) ([0b3d738](https://github.com/awslabs/fhir-works-on-aws-authz-rbac/commit/0b3d738280b07aa0e0adfd0aa7398adc0e6025a5))
 
 ## [4.0.1] - 2020-12-07
 
