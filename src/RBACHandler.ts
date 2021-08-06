@@ -138,18 +138,18 @@ export class RBACHandler implements Authorization {
                             }
                         }
                         if (exportType === 'group' || exportType === 'patient') {
-                            let matchEveryResource = false;
+                            let matchSomeResource = false;
                             // Routing and Persistence package will filter the export data to only allowed resource types
                             if (this.fhirVersion === '4.0.1') {
-                                matchEveryResource = R4_PATIENT_COMPARTMENT_RESOURCES.some((resource: string) => {
+                                matchSomeResource = R4_PATIENT_COMPARTMENT_RESOURCES.some((resource: string) => {
                                     return rule.resources.includes(resource);
                                 });
                             } else if (this.fhirVersion === '3.0.1') {
-                                matchEveryResource = STU3_PATIENT_COMPARTMENT_RESOURCES.some((resource: string) => {
+                                matchSomeResource = STU3_PATIENT_COMPARTMENT_RESOURCES.some((resource: string) => {
                                     return rule.resources.includes(resource);
                                 });
                             }
-                            if (matchEveryResource) {
+                            if (matchSomeResource) {
                                 return;
                             }
                             throw new UnauthorizedError('Unauthorized');
