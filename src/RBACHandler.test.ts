@@ -248,7 +248,7 @@ describe('verifyAccessToken:Export', () => {
                     getTestPractitionerRBACRules(['read'], BASE_RESOURCES),
                     fhirVersion,
                 );
-                expect(
+                await expect(
                     authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
@@ -265,7 +265,7 @@ describe('verifyAccessToken:Export', () => {
                     getTestPractitionerRBACRules(['read'], shuffle(BASE_RESOURCES, { copy: true })),
                     fhirVersion,
                 );
-                expect(
+                await expect(
                     authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
@@ -282,7 +282,7 @@ describe('verifyAccessToken:Export', () => {
                     getTestPractitionerRBACRules(['read'], ['Patient', 'MedicationRequest']),
                     fhirVersion,
                 );
-                expect(
+                await expect(
                     authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
@@ -299,7 +299,7 @@ describe('verifyAccessToken:Export', () => {
                     getTestPractitionerRBACRules(['create'], BASE_RESOURCES),
                     fhirVersion,
                 );
-                expect(
+                await expect(
                     authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
@@ -311,12 +311,12 @@ describe('verifyAccessToken:Export', () => {
                 ).rejects.toThrowError(UnauthorizedError);
             });
 
-            test(`TRUE:${fhirVersion}: GET patient Export with permission to all resources in Patient compartment`, async () => {
+            test(`TRUE:${fhirVersion}: GET patient Export with permission to some resources in Patient compartment`, async () => {
                 const authZHandler: RBACHandler = new RBACHandler(
-                    getTestPractitionerRBACRules(['read'], PATIENT_COMPARTMENT),
+                    getTestPractitionerRBACRules(['read'], ['Patient', 'Group']),
                     fhirVersion,
                 );
-                expect(
+                await expect(
                     authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
@@ -328,12 +328,12 @@ describe('verifyAccessToken:Export', () => {
                 ).resolves.toEqual(practitionerDecoded);
             });
 
-            test(`FALSE:${fhirVersion}: GET patient Export without permission to all resources in Patient compartment`, async () => {
+            test(`FALSE:${fhirVersion}: GET patient Export without permission to any resources in Patient compartment`, async () => {
                 const authZHandler: RBACHandler = new RBACHandler(
-                    getTestPractitionerRBACRules(['read'], ['Patient', 'Account']),
+                    getTestPractitionerRBACRules(['read'], ['Binary', 'Bundle']),
                     fhirVersion,
                 );
-                expect(
+                await expect(
                     authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
@@ -345,12 +345,12 @@ describe('verifyAccessToken:Export', () => {
                 ).rejects.toThrowError(UnauthorizedError);
             });
 
-            test(`TRUE:${fhirVersion}: GET group Export with permission to all resources in Patient compartment`, async () => {
+            test(`TRUE:${fhirVersion}: GET group Export with permission to some resources in Patient compartment`, async () => {
                 const authZHandler: RBACHandler = new RBACHandler(
-                    getTestPractitionerRBACRules(['read'], PATIENT_COMPARTMENT),
+                    getTestPractitionerRBACRules(['read'], ['Patient', 'Account']),
                     fhirVersion,
                 );
-                expect(
+                await expect(
                     authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
@@ -362,12 +362,12 @@ describe('verifyAccessToken:Export', () => {
                 ).resolves.toEqual(practitionerDecoded);
             });
 
-            test(`FALSE:${fhirVersion}: GET group Export without permission to all resources in Patient compartment`, async () => {
+            test(`FALSE:${fhirVersion}: GET group Export without permission to any resources in Patient compartment`, async () => {
                 const authZHandler: RBACHandler = new RBACHandler(
-                    getTestPractitionerRBACRules(['read'], ['Patient', 'Account']),
+                    getTestPractitionerRBACRules(['read'], ['Binary', 'Bundle']),
                     fhirVersion,
                 );
-                expect(
+                await expect(
                     authZHandler.verifyAccessToken({
                         accessToken: practitionerAccessToken,
                         operation: 'read',
@@ -385,7 +385,7 @@ describe('verifyAccessToken:Export', () => {
                 getTestPractitionerRBACRules(['read'], BASE_RESOURCES),
                 fhirVersion,
             );
-            expect(
+            await expect(
                 authZHandler.verifyAccessToken({
                     accessToken: practitionerAccessToken,
                     operation: 'read',
@@ -402,7 +402,7 @@ describe('verifyAccessToken:Export', () => {
                 getTestPractitionerRBACRules(['delete'], BASE_RESOURCES),
                 fhirVersion,
             );
-            expect(
+            await expect(
                 authZHandler.verifyAccessToken({
                     accessToken: practitionerAccessToken,
                     operation: 'delete',
