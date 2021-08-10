@@ -3,11 +3,9 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 import {
-    R4_PATIENT_COMPARTMENT_RESOURCES,
     R4Resource,
     BASE_R4_RESOURCES,
     TypeOperation,
-    STU3_PATIENT_COMPARTMENT_RESOURCES,
     FhirVersion,
     BASE_STU3_RESOURCES,
     AccessBulkDataJobRequest,
@@ -240,8 +238,6 @@ describe('verifyAccessToken:Export', () => {
     const fhirVersions: FhirVersion[] = ['3.0.1', '4.0.1'];
     fhirVersions.forEach((fhirVersion: FhirVersion) => {
         const BASE_RESOURCES = fhirVersion === '3.0.1' ? BASE_STU3_RESOURCES : BASE_R4_RESOURCES;
-        const PATIENT_COMPARTMENT =
-            fhirVersion === '3.0.1' ? STU3_PATIENT_COMPARTMENT_RESOURCES : R4_PATIENT_COMPARTMENT_RESOURCES;
         describe('initiate-export', () => {
             test(`TRUE:${fhirVersion}: GET system Export with permission to all resources`, async () => {
                 const authZHandler: RBACHandler = new RBACHandler(
