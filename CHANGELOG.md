@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.0.0](https://github.com/awslabs/fhir-works-on-aws-authz-rbac/compare/v4.1.1...v5.0.0) (2021-08-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* `verifyAccessToken` now allows bulk export requests when the user has read permissions on SOME of the requested resource types instead of requiring permissions on ALL of them. This allows partial exports scoped to the user's permissions. Clients are expected to call `getAllowedResourceTypesForOperation` to scope down the resource types to export.
+
+### Features
+
+* allow partial patient and group export ([#29](https://github.com/awslabs/fhir-works-on-aws-authz-rbac/issues/29)) ([dd07460](https://github.com/awslabs/fhir-works-on-aws-authz-rbac/commit/dd07460f1b966375af9daed066b244458cfa5b58)), closes [#27](https://github.com/awslabs/fhir-works-on-aws-authz-rbac/issues/27)
+
 ### [4.1.1](https://github.com/awslabs/fhir-works-on-aws-authz-rbac/compare/v4.1.0...v4.1.1) (2021-01-27)
 
 ### Chore
