@@ -28,7 +28,7 @@
     "prepublish": "tsc"
   },
   "dependencies": {
-    "fhir-works-on-aws-interface": "^7.0.1",
+    "fhir-works-on-aws-interface": "^10.0.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.20"
   },
