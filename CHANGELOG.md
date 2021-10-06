@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [5.0.1](https://github.com/awslabs/fhir-works-on-aws-authz-rbac/compare/v5.0.0...v5.0.1) (2021-10-06)
 
+### Chore
+
+* Update dependencies
+
 ## [5.0.0](https://github.com/awslabs/fhir-works-on-aws-authz-rbac/compare/v4.1.1...v5.0.0) (2021-08-17)
 
 
