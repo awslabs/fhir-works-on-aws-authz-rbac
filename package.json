@@ -1,6 +1,6 @@
 {
   "name": "fhir-works-on-aws-authz-rbac",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "FHIR Works on AWS role base access control",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
