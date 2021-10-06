@@ -80,7 +80,7 @@ export class RBACHandler implements Authorization {
         const { userIdentity, operation } = request;
         const groups: string[] = userIdentity['cognito:groups'] ?? [];
 
-        return groups.flatMap(group => {
+        return groups.flatMap((group) => {
             const groupRule = this.rules.groupRules[group];
             if (groupRule !== undefined && groupRule.operations.includes(operation)) {
                 return groupRule.resources;
